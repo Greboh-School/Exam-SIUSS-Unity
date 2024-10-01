@@ -7,7 +7,7 @@ using UnityEngine.UI;
 
 public class LoginCredentialHandler : MonoBehaviour
 {
-    public APIRequests netRequests;
+    public APIHandler apiHandler;
     public Canvas loginView;
     public Canvas registerView;
     public IPAddress gameServerAPI_IP;
@@ -16,16 +16,22 @@ public class LoginCredentialHandler : MonoBehaviour
 
     private void Start()
     {
-        login = new LoginView(loginView, registerView, netRequests);
-        register = new RegisterView(registerView, loginView, netRequests);
+        login = new LoginView(loginView, registerView, apiHandler);
+        register = new RegisterView(registerView, loginView, apiHandler);
 
         registerView.enabled = false;
+    }
+
+    public void Update()
+    {
+        login.Update();
+        register.Update();
     }
 }
 
 public class LoginView : View
 {
-    public LoginView(Canvas selfView, Canvas otherView, APIRequests netRequests) : base(selfView, otherView, netRequests) {}
+    public LoginView(Canvas view, Canvas otherView, APIHandler netRequests) : base(view, otherView, netRequests) {}
 
     protected override void ReadValues()
     {
@@ -35,7 +41,7 @@ public class LoginView : View
 
         var dto = new DTO.User() { Username = user, Password = pass };
 
-        netRequests.Login(dto, OnLoginSucces, OnError);
+        apiHandler.Login(dto, OnLoginSucces, OnError);
     }
 }
 
@@ -45,9 +51,9 @@ public class RegisterView : View
     private string user;
     private string pass;
 
-    public RegisterView(Canvas selfView, Canvas otherView, APIRequests netRequests) : base(selfView, otherView, netRequests)
+    public RegisterView(Canvas view, Canvas otherView, APIHandler netRequests) : base(view, otherView, netRequests)
     {
-        passwordCheck = selfView.transform.Find("passwordCheck").GetComponent<TMP_InputField>();
+        passwordCheck = view.transform.Find("passwordCheck").GetComponent<TMP_InputField>();
     }
 
     protected override void ReadValues()
@@ -60,7 +66,7 @@ public class RegisterView : View
         {
             var dto = new DTO.User() { Username = user, Password = pass };
 
-            netRequests.Register(dto, RegisterSucces, OnError);
+            apiHandler.Register(dto, RegisterSucces, OnError);
         }
         else
         {
@@ -72,37 +78,83 @@ public class RegisterView : View
     {
         var dto = new DTO.User() { Username = user, Password = pass };
 
-        netRequests.Login(dto, OnLoginSucces, OnError);
+        apiHandler.Login(dto, OnLoginSucces, OnError);
+    }
+
+    protected override void SwitchInputField()
+    {
+        if (username.isFocused)
+        {
+            password.Select();
+        }
+        else if (password.isFocused)
+        {
+            passwordCheck.Select();
+        }
+        else if (passwordCheck.isFocused)
+        {
+            username.Select();
+        }
     }
 }
 
 public abstract class View
 {
     protected Canvas otherView;
-    protected Canvas selfView;
+    protected Canvas view;
     protected TMP_InputField password;
     protected TMP_InputField username;
     protected Button viewChange;
     protected Button confirm;
     protected TMP_Text error;
-    protected APIRequests netRequests;
+    protected APIHandler apiHandler;
 
-    public View(Canvas selfView, Canvas otherView, APIRequests netRequests)
+    public View(Canvas view, Canvas otherView, APIHandler apiHandler)
     {
-        this.netRequests = netRequests;
-        this.selfView = selfView;
+        this.apiHandler = apiHandler;
+        this.view = view;
         this.otherView = otherView;
-        username = selfView.transform.Find("username").GetComponent<TMP_InputField>();
-        password = selfView.transform.Find("password").GetComponent<TMP_InputField>();
+        username = view.transform.Find("username").GetComponent<TMP_InputField>();
+        password = view.transform.Find("password").GetComponent<TMP_InputField>();
 
-        viewChange = selfView.transform.Find("viewChange").GetComponent<Button>();
+        username.Select();
+
+        viewChange = view.transform.Find("viewChange").GetComponent<Button>();
         viewChange.onClick.AddListener(() => ChangeView(true, false));
 
-        confirm = selfView.transform.Find("confirm").GetComponent<Button>();
+        confirm = view.transform.Find("confirm").GetComponent<Button>();
         confirm.onClick.AddListener(ReadValues);
 
-        error = selfView.transform.Find("error").GetComponent<TMP_Text>();
+        error = view.transform.Find("error").GetComponent<TMP_Text>();
         error.text = string.Empty;
+    }
+
+    public void Update()
+    {
+        if (view.enabled)
+        {
+            if (Input.GetKeyDown(KeyCode.Tab))
+            {
+                SwitchInputField();
+            }
+
+            if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
+            {
+                ReadValues();
+            }
+        }
+    }
+
+    protected virtual void SwitchInputField()
+    {
+        if (username.isFocused)
+        {
+            password.Select();
+        }
+        else if (password.isFocused)
+        {
+            username.Select();
+        }
     }
 
     protected abstract void ReadValues();
@@ -111,11 +163,11 @@ public abstract class View
     {
         Debug.Log(response);
 
-        NetworkSession netSession = GameObject.Find("NetworkManager").GetComponent<NetworkSession>();
+        NetworkHandler netSession = GameObject.Find("NetworkManager").GetComponent<NetworkHandler>();
 
         netSession.jwt = response;
 
-        netRequests.GetServer(OnRegistryAPISucces, OnError);
+        apiHandler.GetServer(OnRegistryAPISucces, OnError);
     }
 
     protected void OnError(string errorText)
@@ -126,12 +178,11 @@ public abstract class View
     private void OnRegistryAPISucces(DTO.IPResponse IP)
     {
         GameObject networkObject = GameObject.Find("Network Manager");
-        NetworkSession network = networkObject.GetComponent<NetworkSession>();
+        NetworkHandler network = networkObject.GetComponent<NetworkHandler>();
 
         Debug.Log($"IP setting to {IP}");
 
-        network.defaultServerIP = IP.IP;
-        network.defaultServerPort = IP.Port;
+        network.serverIP = $"{IP.IP}:{IP.Port}";
         network.StartSession();
 
         ChangeView(false, false);
@@ -141,6 +192,6 @@ public abstract class View
     {
         otherView.enabled = other;
         error.text = string.Empty;
-        selfView.enabled = self;
+        view.enabled = self;
     }
 }
