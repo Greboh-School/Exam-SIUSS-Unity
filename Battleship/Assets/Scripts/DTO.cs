@@ -1,19 +1,13 @@
 using System;
-using UnityEngine;
 
-public class DTO : MonoBehaviour
+[Serializable]
+public class ApplicationUserDTO
 {
-    [Serializable]
-    public class User
-    {
-        public string Username;
-        public string Password;
-    }
+    public string UserName;
+    public Guid UserId;
 
-    [Serializable]
-    public class IPResponse
+    public override string ToString()
     {
-        public string IP;
-        public string Port;
+        return $"{UserId}, {UserName}";
     }
 }

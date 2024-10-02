@@ -1,3 +1,4 @@
+using Requests;
 using System.Net;
 using TMPro;
 using UnityEditor.PackageManager.Requests;
@@ -33,15 +34,17 @@ public class LoginView : View
 {
     public LoginView(Canvas view, Canvas otherView, APIHandler netRequests) : base(view, otherView, netRequests) {}
 
-    protected override void ReadValues()
+    protected override async void ReadValues()
     {
         error.text = string.Empty;
         string user = username.text;
         string pass = password.text;
 
-        var dto = new DTO.User() { Username = user, Password = pass };
+        var request = new LoginRequest() { UserName = user, Password = pass };
 
-        apiHandler.Login(dto, OnLoginSucces, OnError);
+        var dto = await apiHandler.Login(request);
+
+        Debug.Log(dto.ToString());
     }
 }
 
@@ -64,9 +67,9 @@ public class RegisterView : View
         string passCheck = passwordCheck.text;
         if(pass == passCheck)
         {
-            var dto = new DTO.User() { Username = user, Password = pass };
+            //var dto = new DTO.ApplicationUser() { Username = user, Password = pass };
 
-            apiHandler.Register(dto, RegisterSucces, OnError);
+            //apiHandler.Register(dto, RegisterSucces, OnError);
         }
         else
         {
@@ -76,9 +79,9 @@ public class RegisterView : View
 
     protected void RegisterSucces(string response)
     {
-        var dto = new DTO.User() { Username = user, Password = pass };
+       // var dto = new DTO.ApplicationUser() { Username = user, Password = pass };
 
-        apiHandler.Login(dto, OnLoginSucces, OnError);
+        //apiHandler.Login(dto, OnLoginSucces, OnError);
     }
 
     protected override void SwitchInputField()
@@ -157,7 +160,7 @@ public abstract class View
         }
     }
 
-    protected abstract void ReadValues();
+    protected virtual async void ReadValues() { }
 
     protected void OnLoginSucces(string response)
     {
@@ -165,9 +168,9 @@ public abstract class View
 
         NetworkHandler netSession = GameObject.Find("NetworkManager").GetComponent<NetworkHandler>();
 
-        netSession.jwt = response;
+      //  netSession.jwt = response;
 
-        apiHandler.GetServer(OnRegistryAPISucces, OnError);
+       // apiHandler.GetServer(OnRegistryAPISucces, OnError);
     }
 
     protected void OnError(string errorText)
@@ -175,7 +178,7 @@ public abstract class View
         error.text = errorText;
     }
 
-    private void OnRegistryAPISucces(DTO.IPResponse IP)
+    /*private void OnRegistryAPISucces(DTO.IPResponse IP)
     {
         GameObject networkObject = GameObject.Find("Network Manager");
         NetworkHandler network = networkObject.GetComponent<NetworkHandler>();
@@ -186,7 +189,7 @@ public abstract class View
         network.StartSession();
 
         ChangeView(false, false);
-    }
+    }*/
 
     private void ChangeView(bool other, bool self)
     {

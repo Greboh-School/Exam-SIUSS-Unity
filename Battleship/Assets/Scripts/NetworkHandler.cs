@@ -1,4 +1,5 @@
 using System;
+using System.Net.Http;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
@@ -18,25 +19,17 @@ public class NetworkHandler : MonoBehaviour
     [Tooltip("Can also be configured with Environment variables: LOGIN_API and REGISTRY_API")]
     public string registryAPI;
 
-    [Tooltip("JWT for authorization of user, will be auto filled by scripts")]
-    public string jwt;
-
     public enum NetworkType { Client, Server }
 
     private void Start()
     {
-        SetAPIEndpoints();
+        loginAPI = Environment.GetEnvironmentVariable("LOGIN_API") ?? "http://localhost:8080/api/v1/sessions";
+        registryAPI = Environment.GetEnvironmentVariable("REGISTRY_API") ?? "http://localhost:7002/v1/Gameserver/verify";
 
         if (AutoStartNetworkSession)
         {
             StartSession();
         }
-    }
-
-    private void SetAPIEndpoints()
-    {
-        loginAPI = Environment.GetEnvironmentVariable("LOGIN_API") ?? "localhost:8080/api/v1";
-        registryAPI = Environment.GetEnvironmentVariable("REGISTRY_API") ?? "localhost:7002/v1/Gameserver/verify";
     }
 
     public void StartSession()
@@ -57,7 +50,9 @@ public class NetworkHandler : MonoBehaviour
                 break;
 
             case NetworkType.Server:
-                RegisterServerCallbacks();
+                NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
+                NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
+
                 successfulStart = NetworkManager.Singleton.StartServer();
                 break;
         }
@@ -79,12 +74,6 @@ public class NetworkHandler : MonoBehaviour
         UnityTransport transport = NetworkManager.Singleton.GetComponent<UnityTransport>();
         transport.ConnectionData.Address = splitIP[0];
         transport.ConnectionData.Port = ushort.Parse(splitIP[1]);
-    }
-
-    private void RegisterServerCallbacks()
-    {
-        NetworkManager.Singleton.OnClientConnectedCallback += OnClientConnected;
-        NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
     }
 
     private void DebugSessionState(bool successfulStart)

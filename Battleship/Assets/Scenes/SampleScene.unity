@@ -507,6 +507,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: LoginScreen
       objectReference: {fileID: 0}
+    - target: {fileID: 3881058912883046936, guid: 4a34d81fc6e9dbd4a945519e4d7694fd,
+        type: 3}
+      propertyPath: apiHandler
+      value: 
+      objectReference: {fileID: 2060691439}
     - target: {fileID: 8148800477644523676, guid: 4a34d81fc6e9dbd4a945519e4d7694fd,
         type: 3}
       propertyPath: m_LocalPosition.x
@@ -597,9 +602,8 @@ MonoBehaviour:
   serverIP: 127.0.0.1:40000
   AutoStartNetworkSession: 0
   sessionType: 0
-  loginAPI: localhost:8080/api/v1
+  loginAPI: http://localhost:8080/api/v1/sessions
   registryAPI: localhost:7002/v1/Gameserver/verify
-  jwt: 
 --- !u!114 &2060691436
 MonoBehaviour:
   m_ObjectHideFlags: 0

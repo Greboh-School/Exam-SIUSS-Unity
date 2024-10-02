@@ -1,9 +1,9 @@
-using System;
-using System.Collections;
+using Requests;
+using System.Net.Http.Json;
+using System.Threading.Tasks;
 using UnityEngine;
-using UnityEngine.Networking;
 
-public class APIHandler : MonoBehaviour
+public class APIHandler : BaseClient
 {
     private NetworkHandler networkHandler;
 
@@ -12,72 +12,27 @@ public class APIHandler : MonoBehaviour
         networkHandler = GetComponent<NetworkHandler>();
     }
 
-    public void GetRequest<T>(string endpoint, Action<T> onSuccess, Action<string> onError)
+    public async Task<ApplicationUserDTO> Login(LoginRequest loginRequest)
     {
-        string url = $"{networkHandler.registryAPI}/{endpoint}";
-        StartCoroutine(SendRequest<T>(url, UnityWebRequest.kHttpVerbGET, null, onSuccess, onError));
-    }
+        Debug.Log(networkHandler.loginAPI);
+        Debug.Log($"{loginRequest.UserName}, {loginRequest.Password}");
 
-    public void PostRequest<T>(string endpoint, T dto, Action<string> onSuccess, Action<string> onError)
-    {
-        string url = $"{networkHandler.loginAPI}/{endpoint}";
-        string json = JsonUtility.ToJson(dto);
-        StartCoroutine(SendRequest(url, UnityWebRequest.kHttpVerbPOST, json, onSuccess, onError));
-    }
+        //{networkHandler.loginAPI}/api/v1/sessions
 
-    public void PutRequest<T>(string endpoint, T dto, Action<string> onSuccess, Action<string> onError)
-    {
-        string url = $"{networkHandler.loginAPI}/{endpoint}";
-        string json = JsonUtility.ToJson(dto);
-        StartCoroutine(SendRequest(url, UnityWebRequest.kHttpVerbPUT, json, onSuccess, onError));
-    }
+        var response = await HttpClient.PostAsJsonAsync($"http://localhost:5053/api/v1/Sessions", loginRequest);
 
-    public void GetServer(Action<DTO.IPResponse> onSuccess, Action<string> onError)
-    {
-        GetRequest<DTO.IPResponse>($"{networkHandler.jwt}", onSuccess, onError);
-    }
-
-    public void Login(DTO.User dto, Action<string> onSuccess, Action<string> onError)
-    {
-        PostRequest("login", dto, onSuccess, onError);
-    }
-
-    public void Register(DTO.User dto, Action<string> onSuccess, Action<string> onError)
-    {
-        PostRequest("new", dto, onSuccess, onError);
-    }
-
-    private IEnumerator SendRequest<T>(string url, string method, string jsonData, Action<T> onSuccess, Action<string> onError)
-    {
-        UnityWebRequest request = new UnityWebRequest(url, method);
-
-        if (!string.IsNullOrEmpty(jsonData))
+        if (!response.IsSuccessStatusCode)
         {
-            byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(jsonData);
-            request.uploadHandler = new UploadHandlerRaw(bodyRaw);
+            Debug.LogError(response.StatusCode);
         }
 
-        request.SetRequestHeader("Content-Type", "application/json");
-        request.downloadHandler = new DownloadHandlerBuffer();
+        var dto = await response.Content.ReadFromJsonAsync<ApplicationUserDTO>();
 
-        yield return request.SendWebRequest();
+        if(dto is null)
+        {
+            Debug.LogError("dto is null");
+        }
 
-        if (request.result == UnityWebRequest.Result.Success)
-        {
-            string responseText = request.downloadHandler.text;
-            if (typeof(T) == typeof(string))
-            {
-                onSuccess?.Invoke((T)(object)responseText);
-            }
-            else
-            {
-                T responseDto = JsonUtility.FromJson<T>(responseText);
-                onSuccess?.Invoke(responseDto);
-            }
-        }
-        else
-        {
-            onError?.Invoke(request.error);
-        }
+        return dto;
     }
 }
