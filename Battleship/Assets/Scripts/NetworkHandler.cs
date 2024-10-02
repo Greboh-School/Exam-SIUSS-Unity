@@ -1,5 +1,4 @@
 using System;
-using System.Net.Http;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
@@ -12,20 +11,11 @@ public class NetworkHandler : MonoBehaviour
     [Tooltip("Should a Client/Server start instantly - Mainly meant for server")]
     public bool AutoStartNetworkSession = false;
     public NetworkType sessionType;
-
-    [Header("API Endpoints")]
-    [Tooltip("Can also be configured with Environment variables: LOGIN_API and REGISTRY_API")]
-    public string loginAPI;
-    [Tooltip("Can also be configured with Environment variables: LOGIN_API and REGISTRY_API")]
-    public string registryAPI;
-
+    
     public enum NetworkType { Client, Server }
 
     private void Start()
     {
-        loginAPI = Environment.GetEnvironmentVariable("LOGIN_API") ?? "http://localhost:8080/api/v1/sessions";
-        registryAPI = Environment.GetEnvironmentVariable("REGISTRY_API") ?? "http://localhost:7002/v1/Gameserver/verify";
-
         if (AutoStartNetworkSession)
         {
             StartSession();
@@ -40,7 +30,7 @@ public class NetworkHandler : MonoBehaviour
             return;
         }
 
-        bool successfulStart = false;
+        var successfulStart = false;
         SetIP();
 
         switch (sessionType)
