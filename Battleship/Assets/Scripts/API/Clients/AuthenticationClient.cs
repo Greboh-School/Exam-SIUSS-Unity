@@ -1,5 +1,7 @@
-﻿using System.Net.Http.Json;
+﻿using System;
+using System.Net.Http.Json;
 using System.Threading.Tasks;
+using Assets.Scripts.API.Models.Requests;
 using Requests;
 using UnityEngine;
 
@@ -24,6 +26,19 @@ namespace Clients
             }
 
             return dto;
+        }
+
+        public async Task<bool> Register(RegistrationRequest request)
+        {
+            var response = await Client.PostAsJsonAsync($"{Client.BaseAddress}/identities", request);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Debug.LogError($"Status: {response.StatusCode} : Reason {response.RequestMessage}");
+                return false;
+            }
+
+            return true;
         }
     }
 }

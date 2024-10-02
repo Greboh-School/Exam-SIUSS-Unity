@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using Assets.Scripts.API.Models.Requests;
 using Clients;
 using Player;
 using Requests;
@@ -28,10 +29,9 @@ public class APIHandler : MonoBehaviour
         _profileManager.OnSuccessfulLogin(dto);
     }
 
-    // TODO: Implement Register
-    // public async Task Register(RegistrationRequest request)
-    // {
-    //     await _authenticationClient.Register(request);
-    // }
-    
+    public async Task<bool> Register(RegistrationRequest request)
+    {
+        return await _authenticationClient.Register(request);
+    }
+
 }

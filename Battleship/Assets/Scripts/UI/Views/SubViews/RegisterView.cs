@@ -1,3 +1,4 @@
+using Assets.Scripts.API.Models.Requests;
 using Requests;
 using TMPro;
 using UnityEngine;
@@ -46,7 +47,18 @@ namespace Views
 
         private async void OnRegistrationClicked()
         {
-            //TODO: Register
+            var request = new RegistrationRequest
+            {
+                Username = _username.text,
+                Password = _password.text
+            };
+
+            var succes = await APIHandler.Register(request);
+
+            if (succes)
+            {
+                ViewManager.SwitchView(ViewType.Login);
+            }
         }
 
         private  void OnBackButtonClicked()
