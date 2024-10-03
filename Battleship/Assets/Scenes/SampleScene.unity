@@ -3658,7 +3658,7 @@ GameObject:
   - component: {fileID: 2080213765}
   - component: {fileID: 2080213767}
   m_Layer: 0
-  m_Name: Clients
+  m_Name: NetworkClients
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -5513,9 +5513,9 @@ SceneRoots:
   - {fileID: 330585546}
   - {fileID: 410087041}
   - {fileID: 832575519}
-  - {fileID: 2060691438}
   - {fileID: 1243474048}
   - {fileID: 835077239}
+  - {fileID: 2060691438}
   - {fileID: 2080213766}
   - {fileID: 1593612392}
   - {fileID: 835449982}
