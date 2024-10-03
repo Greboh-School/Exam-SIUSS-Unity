@@ -33,5 +33,4 @@ public class APIHandler : MonoBehaviour
     {
         return await _authenticationClient.Register(request);
     }
-
 }

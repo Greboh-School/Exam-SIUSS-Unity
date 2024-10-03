@@ -57,20 +57,3 @@ public class LoginView : View
         ViewManager.SwitchView(ViewType.Registration);
     }
 }
-
-
-    // public LoginView(Canvas view, Canvas otherView, APIHandler netRequests) : base(view, otherView, netRequests) {}
-    //
-    // protected override async void ReadValues()
-    // {
-    //     error.text = string.Empty;
-    //     var request = new LoginRequest
-    //     {
-    //         Username = _username.text,
-    //         Password = _password.text
-    //     };
-    //     
-    //     var dto = await APIHandler.Login(request);
-    //
-    //     Debug.Log($"DTO values: {dto}");
-    // }
