@@ -1,4 +1,4 @@
-using System;
+using Assets.Scripts.UI.Views.SubViews;
 using Requests;
 using TMPro;
 using UnityEngine;
@@ -49,7 +49,19 @@ public class LoginView : View
             Password = _password.text
         };
 
-        await APIHandler.Login(request);
+        var profile = await APIHandler.Login(request);
+
+        if(profile is null)
+        {
+            Debug.LogError("Failed attempt at getting PlayerProfile from Authentication");
+        }
+        else
+        {
+            ViewManager.SwitchView(ViewType.MainMenu);
+
+            var mainMenuView = FindObjectOfType<MainMenuView>();
+            mainMenuView.DisplayPlayerProfile(profile);
+        }
     }
 
     private void OnRegistrationClicked()
@@ -57,20 +69,3 @@ public class LoginView : View
         ViewManager.SwitchView(ViewType.Registration);
     }
 }
-
-
-    // public LoginView(Canvas view, Canvas otherView, APIHandler netRequests) : base(view, otherView, netRequests) {}
-    //
-    // protected override async void ReadValues()
-    // {
-    //     error.text = string.Empty;
-    //     var request = new LoginRequest
-    //     {
-    //         Username = _username.text,
-    //         Password = _password.text
-    //     };
-    //     
-    //     var dto = await APIHandler.Login(request);
-    //
-    //     Debug.Log($"DTO values: {dto}");
-    // }

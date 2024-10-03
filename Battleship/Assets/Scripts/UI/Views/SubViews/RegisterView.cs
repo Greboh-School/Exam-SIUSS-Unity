@@ -59,6 +59,10 @@ namespace Views
             {
                 ViewManager.SwitchView(ViewType.Login);
             }
+            else
+            {
+                Debug.LogError("Failed attempt at registering Player using Authentacation");
+            }
         }
 
         private  void OnBackButtonClicked()
