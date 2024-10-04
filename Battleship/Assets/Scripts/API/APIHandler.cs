@@ -16,17 +16,17 @@ public class APIHandler : MonoBehaviour
         _profileManager = FindObjectOfType<ProfileManager>();
     }
     
-    public async Task Login(LoginRequest request)
+    public async Task<PlayerProfile> Login(LoginRequest request)
     {
         var dto = await _authenticationClient.Login(request);
 
         if (dto is null)
         {
             Debug.LogError("DTO is null!");
-            return;
+            return null;
         }
         
-        _profileManager.OnSuccessfulLogin(dto);
+        return _profileManager.OnSuccessfulLogin(dto);
     }
 
     public async Task<bool> Register(RegistrationRequest request)

@@ -12,9 +12,9 @@ namespace Player
 
         private JsonWebTokenHandler _tokenHandler = new();
         
-        public void OnSuccessfulLogin(ApplicationUserDTO dto)
+        public PlayerProfile OnSuccessfulLogin(ApplicationUserDTO dto)
         {
-            Profile = ReadSession(dto);
+            return Profile = ReadSession(dto);
         }
 
         private PlayerProfile ReadSession(ApplicationUserDTO dto)
