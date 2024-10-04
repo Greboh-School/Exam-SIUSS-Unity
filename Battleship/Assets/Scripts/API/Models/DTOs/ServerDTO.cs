@@ -3,8 +3,9 @@ using UnityEngine;
 
 namespace Assets.Scripts.API.Models.DTOs
 {
-    public class ServerIPDTO
+    public class ServerDTO
     {
         public string IP { get; set; }
+        public string Port { get; set; }
     }
 }

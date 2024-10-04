@@ -78,7 +78,7 @@ namespace Assets.Scripts.UI.Views.SubViews
             {
                 var networkSession = FindObjectOfType<NetworkHandler>();
 
-                networkSession.serverIP = dto.IP;
+                networkSession.serverIP = $"{dto.IP}:{dto.Port}";
                 networkSession.StartSession();
             }
         }

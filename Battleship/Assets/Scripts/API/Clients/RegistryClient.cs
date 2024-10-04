@@ -8,7 +8,7 @@ namespace Assets.Scripts.API.Clients
 {
     public class RegistryClient : BaseClient
     {
-        public async Task<ServerIPDTO> GetServer(GetServerRequest getServerRequest)
+        public async Task<ServerDTO> GetServer(GetServerRequest getServerRequest)
         {
             var response = await Client.PostAsJsonAsync($"{Client.BaseAddress}/registry", getServerRequest);
 
@@ -17,7 +17,7 @@ namespace Assets.Scripts.API.Clients
                 Debug.LogError($"Status: {response.StatusCode} : Reason {response.RequestMessage}");
             }
 
-            var dto = await response.Content.ReadFromJsonAsync<ServerIPDTO>();
+            var dto = await response.Content.ReadFromJsonAsync<ServerDTO>();
 
             if (dto is null)
             {
