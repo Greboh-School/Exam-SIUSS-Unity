@@ -19,13 +19,12 @@ namespace Assets.Scripts.Game
         [Tooltip("ShipType")]
         [SerializeField]
         private ShipType _type;
+
         public enum ShipType { Carrier, Battleship, Cruiser, Submarine, Destoyer };
 
-        public void ConfigureValues(Vector2 gridPosition, int rotation, ShipType type)
+        public void ConfigureValues(Vector2 gridPosition, int rotation)
         {
-            _type = type;
-
-            int shipLength = GetShipLength(type);
+            int shipLength = GetShipLength(_type);
 
             _shipStatus = new List<PositionStatus>(shipLength);
             _shipHP = shipLength;

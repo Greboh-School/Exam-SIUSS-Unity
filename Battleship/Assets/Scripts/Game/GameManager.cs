@@ -1,111 +1,126 @@
 using Assets.Scripts.Game;
+using Player;
+using System.Globalization;
+using Unity.Netcode;
 using UnityEngine;
 
-public class GameManager : MonoBehaviour
+public class GameManager : NetworkBehaviour
 {
-    [Header("Grid")]
+    [Header("Boards")]
     [SerializeField]
-    protected GameObject _groundPlane;
-    private int _planeSize = 10;
+    public PlayerBoard PlayerBoardA;
+    public PlayerBoard PlayerBoardB;
+    private PlayerBoard _shootingBoard;
+    private PlayerBoard _waitingBoard;
+
+    [Header("Board Prefab")]
+    [SerializeField]
+    private PlayerBoard _boardPrefrab;
 
     [Header("Effects")]
     [SerializeField]
-    protected GameObject _mouseMarkerPrefab;
+    public GameObject _mouseMarkerPrefab;
     [SerializeField]
-    protected GameObject _hitMarkerPrefab;
+    public GameObject _hitMarkerPrefab;
     [SerializeField]
-    protected GameObject _missedMarkerPrefab;
-
-    [Header("Ships")]
-    [SerializeField]
-    protected GameObject _carrierPrefab;
-    [SerializeField]
-    protected GameObject _battleshipPrefab;
-    [SerializeField]
-    protected GameObject _cruiserPrefab;
-    [SerializeField]
-    protected GameObject _submarinePrefab;
-    [SerializeField]
-    protected GameObject _destroyerPrefab;
+    public GameObject _missedMarkerPrefab;
 
     void Start()
     {
+        if (FindObjectOfType<NetworkHandler>().sessionType is NetworkHandler.NetworkType.Server)
+        {
+            if (PlayerBoardA is null) PlayerBoardA = Instantiate(_boardPrefrab).GetComponent<PlayerBoard>();
+            if (PlayerBoardB is null) PlayerBoardB = Instantiate(_boardPrefrab).GetComponent<PlayerBoard>();
+        }
+
+        _shootingBoard = PlayerBoardA;
+        _waitingBoard = PlayerBoardB;
+
+        PlayerBoardA.IsMyTurn = true;
+        PlayerBoardB.IsMyTurn = false;
     }
 
-    void Update()
+    [ServerRpc(RequireOwnership = false)]
+    public void SendShotToServerRpc(Vector2 gridPosition, ServerRpcParams rpcParams = default)
     {
-        Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
-        RaycastHit hit;
+        Debug.Log("Server received shot at: " + gridPosition);
 
-        // Perform the raycast and check if we hit the plane
-        if (Physics.Raycast(ray, out hit))
+        // Check if the shot is a hit on the waiting board
+        bool isHit = _waitingBoard.AnyShipsHit(gridPosition);
+
+        // Send hit/miss info to both players
+        ConfirmHitOnClientRpc(gridPosition, isHit, _shootingBoard.OwnerClientId, _waitingBoard.OwnerClientId);
+
+        // Switch turns
+        SwitchTurns();
+    }
+
+    [ClientRpc]
+    public void ConfirmHitOnClientRpc(Vector2 gridPosition, bool isHit, ulong shootingPlayerId, ulong waitingPlayerId)
+    {
+        if (IsOwner)
         {
-            // Ensure we hit this particular plane
-            if (hit.collider.gameObject == _groundPlane)
+            if (NetworkManager.Singleton.LocalClientId == shootingPlayerId)
             {
-                // Get the local hit point (relative to the plane's center)
-                Vector3 localHitPoint = transform.InverseTransformPoint(hit.point);
-
-                // Convert the local hit position to a grid coordinate
-                int gridX, gridY;
-                GetGridCell(localHitPoint, out gridX, out gridY);
-
-                Vector3 gridCellCenter = GetGridCellCenter(gridX, gridY);
-                MoveMarker(gridCellCenter);
-
-                // Check for mouse click and handle the raycast
-                if (Input.GetMouseButtonDown(0)) // Left-click
-                {
-                // Log or handle the result
-                Debug.Log("Hit Grid Cell: (" + gridX + ", " + gridY + ")");
-                }
+                PlayerBoardA.PlaceHitMarker(gridPosition, isHit);
+            }
+        }
+        else
+        {
+            if (NetworkManager.Singleton.LocalClientId == waitingPlayerId)
+            {
+                PlayerBoardB.PlaceHitMarker(gridPosition, isHit);
             }
         }
     }
 
-    void GetGridCell(Vector3 localHitPoint, out int gridX, out int gridY)
+    private void SwitchTurns()
     {
-        // Shift the plane's center to be at (0, 0)
-        float halfPlaneSize = _planeSize / 2f;
-
-        // Map the localHitPoint (-halfPlaneSize to halfPlaneSize) to (0 to planeSize)
-        float hitX = localHitPoint.x + halfPlaneSize;
-        float hitY = localHitPoint.z + halfPlaneSize;
-
-        // Calculate grid cell size
-        float cellSize = _planeSize / 10;
-
-        // Determine which cell (0-based index) was hit
-        gridX = Mathf.FloorToInt(hitX / cellSize);
-        gridY = Mathf.FloorToInt(hitY / cellSize);
-
-        // Clamp to ensure the indices don't go out of bounds
-        gridX = Mathf.Clamp(gridX, 0, 10 - 1);
-        gridY = Mathf.Clamp(gridY, 0, 10 - 1);
-    }
-
-    // Function to get the world position of the center of the grid cell
-    Vector3 GetGridCellCenter(int gridX, int gridY)
-    {
-        // Calculate grid cell size
-        float cellSize = _planeSize / 10;
-
-        // Calculate the center of the grid cell in local coordinates
-        float halfPlaneSize = _planeSize / 2f;
-        float xPosition = (gridX * cellSize) - halfPlaneSize + (cellSize / 2f);
-        float zPosition = (gridY * cellSize) - halfPlaneSize + (cellSize / 2f);
-
-        // Return the world position by transforming from local to world space
-        Vector3 localPosition = new Vector3(xPosition, 0, zPosition);
-        return _groundPlane.transform.TransformPoint(localPosition);
-    }
-
-    // Function to move the marker to the specified position
-    void MoveMarker(Vector3 position)
-    {
-        if (_mouseMarkerPrefab != null)
+        if (_shootingBoard == PlayerBoardA)
         {
-            _mouseMarkerPrefab.transform.position = position;
+            _shootingBoard = PlayerBoardB;
+            _waitingBoard = PlayerBoardA;
         }
+        else
+        {
+            _shootingBoard = PlayerBoardA;
+            _waitingBoard = PlayerBoardB;
+        }
+
+        // Update turn status for the player whose turn it is
+        UpdateTurnStatusClientRpc(true, new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams { TargetClientIds = new[] { _shootingBoard.OwnerClientId } }
+        });
+
+        // Update turn status for the player whose turn it is NOT
+        UpdateTurnStatusClientRpc(false, new ClientRpcParams
+        {
+            Send = new ClientRpcSendParams { TargetClientIds = new[] { _waitingBoard.OwnerClientId } }
+        });
+    }
+
+    /// <summary>
+    /// Targeted clientRPC: Only send package to client who needs it!
+    /// </summary>
+    /// <param name="isMyTurn"></param>
+    /// <param name="clientRpcParams"></param>
+    [ClientRpc]
+    public void UpdateTurnStatusClientRpc(bool isMyTurn, ClientRpcParams clientRpcParams = default)
+    {
+        if (PlayerBoardA.IsOwner)
+        {
+            PlayerBoardA.IsMyTurn = isMyTurn;
+        }
+        else
+        {
+            PlayerBoardB.IsMyTurn = isMyTurn;
+        }
+    }
+
+    [ServerRpc(RequireOwnership = false)]
+    public void AddShipToServerRpc(Ship.ShipType type, Vector2 gridPosition, int rotation, ulong clientId)
+    {
+
     }
 }
