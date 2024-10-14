@@ -1,0 +1,6 @@
+# Ignore only the specific Battleship_clone_0 and Battleship_clone_1 folders
+Battleship_clone_0/
+Battleship_clone_1/
+
+# Allow everything else
+!
