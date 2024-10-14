@@ -5,21 +5,21 @@ namespace Game
 {
     public enum GamePhase { Build, Wait, Shoot, Ended }
 
-    public class GameServer : NetworkBehaviour
+    public class OldGameServer : NetworkBehaviour
     {
         [Header("Clients")]
         [SerializeField]
-        private ServerBoard _clientA;
+        private OldServerBoard _clientA;
         [SerializeField]
-        private ServerBoard _clientB;
+        private OldServerBoard _clientB;
         [SerializeField]
-        private GameClientRpc _gameClient;
+        private OldGameClientRpc _gameClient;
 
         public void Start()
         {
             if(_gameClient is null)
             {
-                _gameClient = FindObjectOfType<GameClientRpc>();
+                _gameClient = FindObjectOfType<OldGameClientRpc>();
 
                 if (_gameClient is null)
                 {
@@ -35,11 +35,11 @@ namespace Game
         {
             if (_clientA is null)
             {
-                _clientA = new ServerBoard() { UserName = userName, Id = clientId };
+                _clientA = new OldServerBoard() { UserName = userName, Id = clientId };
             }
             else
             {
-                _clientB = new ServerBoard() { UserName = userName, Id = clientId };
+                _clientB = new OldServerBoard() { UserName = userName, Id = clientId };
 
             }
 
@@ -95,7 +95,7 @@ namespace Game
             }
         }
 
-        private void CheckIfBuildPhasePersists(ServerBoard client)
+        private void CheckIfBuildPhasePersists(OldServerBoard client)
         {
             if (client.GetShipCount() is 5)
             {
@@ -125,7 +125,7 @@ namespace Game
             }
         }
 
-        private ServerBoard GetClientFromId(ulong clientId, bool getOpposite = false)
+        private OldServerBoard GetClientFromId(ulong clientId, bool getOpposite = false)
         {
             if (_clientA.Id == clientId)
             {

@@ -1,4 +1,4 @@
-﻿using System;
+﻿using Network;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
@@ -20,7 +20,12 @@ namespace Views
 
         private void Start()
         {
-            SwitchView(_startView);
+            var networkType = FindObjectOfType<NetworkHandler>().sessionType;
+
+            if (networkType is NetworkType.Client)
+            {
+                SwitchView(_startView);
+            }
         }
         
         public void SwitchView(ViewType type)

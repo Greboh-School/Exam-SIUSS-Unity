@@ -1,4 +1,5 @@
 ﻿using Assets.Scripts.API.Models.Requests;
+using Network;
 using Player;
 using TMPro;
 using UnityEngine;
@@ -44,9 +45,9 @@ namespace Assets.Scripts.UI.Views.SubViews
 
         private void Start()
         {
-            _getServer?.onClick.AddListener(onGetServerClicked);
-            _logOut?.onClick.AddListener(onLogOutClicked);
-            _exit?.onClick.AddListener(onExitClicked);
+            _getServer?.onClick.AddListener(OnGetServerClicked);
+            _logOut?.onClick.AddListener(OnLogOutClicked);
+            _exit?.onClick.AddListener(OnExitClicked);
 
             _profileManager = FindObjectOfType<ProfileManager>();
         }
@@ -64,26 +65,30 @@ namespace Assets.Scripts.UI.Views.SubViews
                 $"{roles}";
         }
 
-        private async void onGetServerClicked()
+        private async void OnGetServerClicked()
         {
             var getServerRequest = new GetServerRequest { AccessToken = _profileManager.Profile.AccessToken };
 
-            var dto = await RegistryClient.GetServer(getServerRequest);
+            //var dto = await RegistryClient.GetServer(getServerRequest);
+
+            var dto = new API.Models.DTOs.ServerDTO { IP = "127.0.0.1", Port = "40000"}; //TODO: REMOVE DEBUG BYPASS
 
             if (dto is null)
             {
                 Debug.LogError("Failed attempt at getting ServerIP from Registry");
-            }
-            else
-            {
-                var networkSession = FindObjectOfType<NetworkHandler>();
 
-                networkSession.serverIP = $"{dto.IP}:{dto.Port}";
-                networkSession.StartSession();
+                return;
             }
+
+            var networkSession = FindObjectOfType<NetworkHandler>();
+
+            networkSession.serverIP = $"{dto.IP}:{dto.Port}";
+            networkSession.StartSession();
+
+            ViewManager.SwitchView(ViewType.GameHUD);
         }
 
-        private void onLogOutClicked()
+        private void OnLogOutClicked()
         {
             _profileManager.Profile = null;
 
@@ -92,7 +97,7 @@ namespace Assets.Scripts.UI.Views.SubViews
             ViewManager.SwitchView(ViewType.Login);
         }
 
-        private void onExitClicked()
+        private void OnExitClicked()
         {
             Application.Quit();
         }

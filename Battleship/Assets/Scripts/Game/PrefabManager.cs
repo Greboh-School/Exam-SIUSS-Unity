@@ -1,4 +1,6 @@
+using Game;
 using Unity.Netcode;
+using UnityEditor;
 using UnityEngine;
 
 public class PrefabManager : MonoBehaviour
@@ -16,11 +18,11 @@ public class PrefabManager : MonoBehaviour
     public GameObject MouseMarkerPrefab;
 
     [Header("Game")]
-    public NetworkObject ClientPrefab;
-    public NetworkObject ServerPrefab;
+    public GameObject ClientPrefab;
+    public GameObject ServerPrefab;
 
 
-    public GameObject GetShipPrefab(int index)
+    public GameObject GetShipPrefabFromIndex(int index)
     {
         switch (index)
         {
@@ -29,6 +31,19 @@ public class PrefabManager : MonoBehaviour
             case 2: return CruiserPrefab;
             case 3: return SubmarinePrefab;
             case 4: return DestroyerPrefab;
+            default: return null;
+        }
+    }
+
+    public GameObject GetShipPrefabFromType(ShipType type)
+    {
+        switch (type)
+        {
+            case ShipType.Carrier: return CarrierPrefab;
+            case ShipType.Battleship: return BattleshipPrefab;
+            case ShipType.Cruiser: return CruiserPrefab;
+            case ShipType.Submarine: return SubmarinePrefab;
+            case ShipType.Destoyer: return DestroyerPrefab;
             default: return null;
         }
     }

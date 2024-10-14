@@ -46,7 +46,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _shipStatus: []
-  Type: 0
+  Type: 3
 --- !u!1 &4299466630933216679
 GameObject:
   m_ObjectHideFlags: 0

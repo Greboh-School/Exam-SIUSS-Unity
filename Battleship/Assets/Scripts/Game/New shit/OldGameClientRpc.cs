@@ -3,13 +3,13 @@ using UnityEngine;
 
 namespace Game
 {
-    public class GameClientRpc : NetworkBehaviour
+    public class OldGameClientRpc : NetworkBehaviour
     {       
         [Header("Boards")]
         [SerializeField]
-        protected ClientBoard _selfBoard;
+        protected OldClientBoard _selfBoard;
         [SerializeField]
-        protected ClientBoard _enemyBoard;
+        protected OldClientBoard _enemyBoard;
 
         [Header("Phase logic")]
         public GamePhase Phase;

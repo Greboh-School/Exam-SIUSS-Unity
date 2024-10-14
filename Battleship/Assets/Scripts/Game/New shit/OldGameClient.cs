@@ -4,15 +4,15 @@ using Player;
 
 namespace Game
 {
-    public class GameClient : GameClientRpc
+    public class OldGameClient : OldGameClientRpc
     {
         [Header("Server")]
         [SerializeField]
-        private GameServer _gameServer;
+        private OldGameServer _gameServer;
 
         public void Start()
         {
-            _gameServer = FindObjectOfType<GameServer>();
+            _gameServer = FindObjectOfType<OldGameServer>();
 
             if (_gameServer is null)
             {

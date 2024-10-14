@@ -6,7 +6,8 @@ public enum ViewType
     Unknown = 0,
     Login,
     Registration,
-    MainMenu
+    MainMenu,
+    GameHUD
 }
 
 namespace Views

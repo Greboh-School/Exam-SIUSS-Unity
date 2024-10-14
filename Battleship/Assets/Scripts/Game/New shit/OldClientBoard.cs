@@ -7,19 +7,19 @@ using UnityEngine;
 
 namespace Game
 {
-    public class ClientBoard : NetworkBehaviour
+    public class OldClientBoard : NetworkBehaviour
     {
         [Header("Server")]
         [SerializeField]
-        private GameServer _gameServer;
+        private OldGameServer _gameServer;
 
         [Header("Ship placement")]
         [SerializeField]
         private PrefabManager _prefabManager;
         [SerializeField]
-        private GameObject _shipBeingPlaced;
+        private GameObject ShipBeingPlaced { get; set; }
         [SerializeField]
-        private int _shipRotation;
+        private int ShipRotation;
 
         [Header("UI")]
         [SerializeField]
@@ -37,9 +37,9 @@ namespace Game
         {
             _prefabManager = FindObjectOfType<PrefabManager>();
 
-            _shipBeingPlaced = _prefabManager.GetShipPrefab(_ships.Count());
+            ShipBeingPlaced = _prefabManager.GetShipPrefabFromIndex(_ships.Count());
 
-            _shipBeingPlaced = Instantiate(_shipBeingPlaced, this.gameObject.transform);
+            ShipBeingPlaced = Instantiate(ShipBeingPlaced, this.gameObject.transform);
 
             _hitMarkers = new List<GameObject>();
         }
@@ -59,11 +59,11 @@ namespace Game
         {
             Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(dto.GridPosition, this.gameObject);
 
-            _shipBeingPlaced.transform.position = gridWorldPosition;
+            ShipBeingPlaced.transform.position = gridWorldPosition;
 
-            _shipBeingPlaced = _prefabManager.GetShipPrefab(_ships.Count());
+            ShipBeingPlaced = _prefabManager.GetShipPrefabFromIndex(_ships.Count());
 
-            _shipBeingPlaced = Instantiate(_shipBeingPlaced, this.gameObject.transform);
+            ShipBeingPlaced = Instantiate(ShipBeingPlaced, this.gameObject.transform);
         }
 
         public void SetUsername(string username)
@@ -82,23 +82,23 @@ namespace Game
 
             Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(gridPosition, this.gameObject);
 
-            _shipBeingPlaced.transform.localPosition = gridWorldPosition;
-            _shipBeingPlaced.transform.localRotation = Quaternion.Euler(0, _shipRotation, 0);
+            ShipBeingPlaced.transform.localPosition = gridWorldPosition;
+            ShipBeingPlaced.transform.localRotation = Quaternion.Euler(0, ShipRotation, 0);
 
             if (Input.GetMouseButtonDown(0)) // Left mouse button clicked
             {
-                var Ship = _shipBeingPlaced.GetComponent<Ship>();
+                var Ship = ShipBeingPlaced.GetComponent<Ship>();
 
-                var dto = new PlaceShipDTO { GridPosition = gridPosition, Rotation = _shipRotation, Type = Ship.Type };
+                var dto = new PlaceShipDTO { GridPosition = gridPosition, Rotation = ShipRotation, Type = Ship.Type };
 
                 _gameServer.TryPlaceShipServerRpc(dto);
             }
 
             if (Input.GetMouseButtonDown(1))
             {
-                _shipRotation += 90;
+                ShipRotation += 90;
 
-                if (_shipRotation > 270) _shipRotation = 0;
+                if (ShipRotation > 270) ShipRotation = 0;
             }
         }
 
@@ -128,7 +128,7 @@ namespace Game
             }
         }
 
-        public void StartAsPlayerBoard(GameServer gameServer)
+        public void StartAsPlayerBoard(OldGameServer gameServer)
         {
             _ships = new List<Ship>(5);
             _prefabManager = FindObjectOfType<PrefabManager>();

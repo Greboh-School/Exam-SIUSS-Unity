@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game
 {
-    public class ServerBoard : ClientBoard
+    public class OldServerBoard : OldClientBoard
     {
         [Header("Client Info")]
         public ulong Id;

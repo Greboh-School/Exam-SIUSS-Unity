@@ -32,13 +32,18 @@ public class LoginView : View
         if (_registrationButton is null)
         {
             Debug.LogError("Registration button is null");
-        }
+        }        
     }
 
     private void Start()
     {
         _loginButton?.onClick.AddListener(OnLoginClicked);
         _registrationButton?.onClick.AddListener(OnRegistrationClicked);
+
+        //TODO: REMOVE BYPASS
+        _username.text = "HCeption";
+        _password.text = "Test-1234";
+        OnLoginClicked();
     }
 
     private async void OnLoginClicked()
