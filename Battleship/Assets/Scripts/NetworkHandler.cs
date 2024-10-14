@@ -1,4 +1,6 @@
+using Game;
 using System;
+using System.Collections;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
@@ -33,10 +35,19 @@ public class NetworkHandler : MonoBehaviour
         var successfulStart = false;
         SetIP();
 
+        var prefabManager = FindObjectOfType<PrefabManager>();
+
         switch (sessionType)
         {
             case NetworkType.Client:
                 successfulStart = NetworkManager.Singleton.StartClient();
+
+                //Instantiate(prefabManager.ServerPrefab);
+                Instantiate(prefabManager.ClientPrefab);
+
+                //var client = obj.GetComponent<GameClient>();
+                //client.ManualStart();
+                //StartCoroutine(StartClientPrefabs(prefabManager));
                 break;
 
             case NetworkType.Server:
@@ -44,10 +55,24 @@ public class NetworkHandler : MonoBehaviour
                 NetworkManager.Singleton.OnClientDisconnectCallback += OnClientDisconnected;
 
                 successfulStart = NetworkManager.Singleton.StartServer();
+
+                Instantiate(prefabManager.ServerPrefab);
                 break;
         }
 
         DebugSessionState(successfulStart);
+    }
+
+    private IEnumerator StartClientPrefabs(PrefabManager prefabManager)
+    {
+        Instantiate(prefabManager.ServerPrefab);
+
+        yield return new WaitForSeconds(0.5f);
+
+        var obj = Instantiate(prefabManager.ClientPrefab);
+        //var client = obj.GetComponent<GameClient>();
+        //client.ManualStart();
+
     }
 
     private void SetIP()

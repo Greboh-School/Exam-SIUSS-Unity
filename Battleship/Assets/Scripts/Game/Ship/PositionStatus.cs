@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Assets.Scripts.Game
+namespace Game
 {
     [System.Serializable]
     public class PositionStatus

@@ -1,4 +1,5 @@
 using Assets.Scripts.Game;
+using Game;
 using Player;
 using System.Globalization;
 using Unity.Netcode;
@@ -8,14 +9,14 @@ public class GameManager : NetworkBehaviour
 {
     [Header("Boards")]
     [SerializeField]
-    public PlayerBoard PlayerBoardA;
-    public PlayerBoard PlayerBoardB;
-    private PlayerBoard _shootingBoard;
-    private PlayerBoard _waitingBoard;
+    public OldPlayerBoard PlayerBoardA;
+    public OldPlayerBoard PlayerBoardB;
+    private OldPlayerBoard _shootingBoard;
+    private OldPlayerBoard _waitingBoard;
 
     [Header("Board Prefab")]
     [SerializeField]
-    private PlayerBoard _boardPrefrab;
+    private OldPlayerBoard _boardPrefrab;
 
     [Header("Effects")]
     [SerializeField]
@@ -29,8 +30,8 @@ public class GameManager : NetworkBehaviour
     {
         if (FindObjectOfType<NetworkHandler>().sessionType is NetworkHandler.NetworkType.Server)
         {
-            if (PlayerBoardA is null) PlayerBoardA = Instantiate(_boardPrefrab).GetComponent<PlayerBoard>();
-            if (PlayerBoardB is null) PlayerBoardB = Instantiate(_boardPrefrab).GetComponent<PlayerBoard>();
+            if (PlayerBoardA is null) PlayerBoardA = Instantiate(_boardPrefrab).GetComponent<OldPlayerBoard>();
+            if (PlayerBoardB is null) PlayerBoardB = Instantiate(_boardPrefrab).GetComponent<OldPlayerBoard>();
         }
 
         _shootingBoard = PlayerBoardA;
@@ -119,7 +120,7 @@ public class GameManager : NetworkBehaviour
     }
 
     [ServerRpc(RequireOwnership = false)]
-    public void AddShipToServerRpc(Ship.ShipType type, Vector2 gridPosition, int rotation, ulong clientId)
+    public void AddShipToServerRpc(ShipType type, Vector2 gridPosition, int rotation, ulong clientId)
     {
 
     }

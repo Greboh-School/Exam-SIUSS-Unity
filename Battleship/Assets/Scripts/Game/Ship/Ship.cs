@@ -2,8 +2,10 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 
-namespace Assets.Scripts.Game
+namespace Game
 {
+    public enum ShipType { Carrier, Battleship, Cruiser, Submarine, Destoyer };
+
     public class Ship : MonoBehaviour
     {
         [Header("Ship Status")]
@@ -11,23 +13,18 @@ namespace Assets.Scripts.Game
         [field: SerializeField]
         private List<PositionStatus> _shipStatus;
 
-        [Tooltip("HP remeaning")]
-        [SerializeField]
-        private int _shipHP;
-
         [Header("Ship Info")]
         [Tooltip("ShipType")]
         [SerializeField]
-        private ShipType _type;
+        public ShipType Type;
 
-        public enum ShipType { Carrier, Battleship, Cruiser, Submarine, Destoyer };
-
-        public void ConfigureValues(Vector2 gridPosition, int rotation)
+        public void ConfigureValues(Vector2 gridPosition, int rotation, ShipType type)
         {
-            int shipLength = GetShipLength(_type);
+            Type = type;
+
+            int shipLength = GetShipLength();
 
             _shipStatus = new List<PositionStatus>(shipLength);
-            _shipHP = shipLength;
 
             for (int i = 0; i < shipLength; i++)
             {
@@ -54,6 +51,11 @@ namespace Assets.Scripts.Game
             }
         }
 
+        public List<PositionStatus> GetShipStatus()
+        {
+            return _shipStatus;
+        }
+
         public bool DoesShotHit(Vector2 gridPosition)
         {
             var positionStatus = _shipStatus.FirstOrDefault(pos => pos.Position == gridPosition);
@@ -65,22 +67,19 @@ namespace Assets.Scripts.Game
 
             if (positionStatus.IsHit)
             {
-                Debug.LogError($"Position {gridPosition} with ship {_type} already hit!");
+                Debug.LogError($"Position {gridPosition} with ship {Type} already hit!");
                 return false;
             }
             else
             {
                 positionStatus.IsHit = true;
-
-                _shipHP--;
-
                 return true;
             }
         }
 
-        private int GetShipLength(ShipType type)
+        public int GetShipLength()
         {
-            switch (type)
+            switch (Type)
             {
                 case ShipType.Carrier:
                     return 5;

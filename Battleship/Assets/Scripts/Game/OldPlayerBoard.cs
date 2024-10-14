@@ -1,11 +1,12 @@
-﻿using Player;
+﻿using Game;
+using Player;
 using System.Collections.Generic;
 using Unity.Netcode;
 using UnityEngine;
 
 namespace Assets.Scripts.Game
 {
-    public class PlayerBoard : NetworkBehaviour
+    public class OldPlayerBoard : NetworkBehaviour
     {
         [Header("Boards")]
         [SerializeField]
@@ -194,14 +195,14 @@ namespace Assets.Scripts.Game
             // Rotate and configure ship
             int rotation = GetRotationInput(); // Function to get rotation input (90 degrees)
             Ship ship = shipInstance.GetComponent<Ship>();
-            ship.ConfigureValues(gridPosition, rotation);
+            //ship.ConfigureValues(gridPosition, rotation);
 
             // Add ship to array
             _ships[_currentShipIndex] = shipInstance;
             _currentShipIndex++;
 
             // Send data to the server
-            _gameManager.AddShipToServerRpc((Ship.ShipType)_currentShipIndex, gridPosition, rotation, NetworkManager.Singleton.LocalClientId);
+            //_gameManager.AddShipToServerRpc((Ship.ShipType)_currentShipIndex, gridPosition, rotation, NetworkManager.Singleton.LocalClientId);
         }
 
         private GameObject GetCurrentShipPrefab()
