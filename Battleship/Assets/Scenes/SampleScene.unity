@@ -2123,7 +2123,8 @@ MonoBehaviour:
     type: 3}
   ClientPrefab: {fileID: 2822858996670703204, guid: 0476dc4bb0bc51542948e46d2aa9314a,
     type: 3}
-  ServerPrefab: {fileID: 0}
+  ServerPrefab: {fileID: 7329559931855666134, guid: cbd1ccd6b106d0046b65335670ef4b82,
+    type: 3}
 --- !u!4 &957431532
 Transform:
   m_ObjectHideFlags: 0

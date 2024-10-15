@@ -1,7 +1,6 @@
 using System;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
-using UnityEditor;
 using UnityEngine;
 
 namespace Network
@@ -43,7 +42,6 @@ namespace Network
             switch (sessionType)
             {
                 case NetworkType.Client:
-                    //NetworkManager.Singleton.OnClientConnectedCallback += OnServerConnected;
                     successfulStart = NetworkManager.Singleton.StartClient();
 
                     break;
@@ -53,7 +51,7 @@ namespace Network
 
                     successfulStart = NetworkManager.Singleton.StartServer();
 
-                    //Instantiate(_prefabManager.ServerPrefab);
+                    Instantiate(_prefabManager.ServerPrefab);
                     break;
             }
 

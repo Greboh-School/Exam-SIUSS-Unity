@@ -1,31 +1,30 @@
 ﻿using Player;
 using Unity.Netcode;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace Game
 {
     public class GameClient : NetworkBehaviour
     {
-        [SerializeField]
-        public GameBoard EnemyBoard;
+        [Header("Controlling Server")]
+        public GameServer Server;
 
-        public int Health;
+        [Header("Boards")]
+        public GameBoard SelfBoard;
+        public GameBoard EnemyBoard;
 
         [Header("Client Info")]
         public ulong Id;
-
+        public int Health;
         public GamePhase Phase;
-
-        [Header("Boards")]
-        [SerializeField]
-        public GameBoard SelfBoard;
-
         public string UserName;
 
         public void Start()
         {
             if (!IsOwner && IsClient) Destroy(this.gameObject);
+
+            EnemyBoard.GameClient = this;
+            SelfBoard.GameClient = this;
 
             if (IsOwner && IsClient)
             {
@@ -35,7 +34,8 @@ namespace Game
 
                 SelfBoard.Text_UserName.text = UserName;
                 Id = NetworkManager.Singleton.LocalClientId;
-                SelfBoard.GameClient = this;
+
+                SelfBoard.InstantiateShipForPlacing = true;
             }
         }
 
@@ -49,18 +49,15 @@ namespace Game
             switch (Phase)
             {
                 case GamePhase.Build:
-                    SelfBoard.ShipBuilder();
+                    SelfBoard.BuildPhase();
                     break;
-
                 case GamePhase.Wait:
                     break;
-
                 case GamePhase.Shoot:
+                    EnemyBoard.ShootingPhase();
                     break;
-
                 case GamePhase.Ended:
                     break;
-
                 default:
                     break;
             }
@@ -85,7 +82,7 @@ namespace Game
 
             if (isValidPosition)
             {
-                SelfBoard.AddShipToServer(dto);
+                SelfBoard.ServerPlaceShip(dto);
 
                 //Advance ship to next variant
                 var type = (int)dto.Type;
@@ -120,6 +117,8 @@ namespace Game
 
                 Phase = GamePhase.Wait;
 
+                Server.RegisterPlayerAsReady(this);
+
                 return true;
             }
 
@@ -132,6 +131,61 @@ namespace Game
             Id = clientId;
             UserName = userName;
             SelfBoard.GameClient = this;
+
+            Server = FindObjectOfType<GameServer>();
+
+            Debug.Log($"Client registered: {userName}, {clientId}");
+        }
+
+        public void ChangePhase(GamePhase phase)
+        {
+            Phase = phase;
+            ChangePhaseClientRpc(phase);
+        }
+
+        [ServerRpc]
+        public void SendShotToServerRpc(Vector2 gridPosition)
+        {
+            Server.AttackOtherClient(gridPosition, this);
+        }
+
+        public bool AnyShipsHit(Vector2 gridPosition)
+        {
+            foreach (var shipObject in SelfBoard.Ships)
+            {
+                var ship = shipObject.GetComponent<Ship>();
+
+                if (ship.DoesShotHit(gridPosition))
+                {
+                    Health--;
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        [ClientRpc]
+        public void ShotResponseClientRpc(Vector2 gridPosition, bool isHit, ClientRpcParams clientRpcParams = default)
+        {
+            EnemyBoard.InstantiateMarker(gridPosition, isHit);
+
+            Phase = GamePhase.Wait;
+        }
+
+        [ClientRpc]
+        public void SendAttackClientRpc(Vector2 gridPosition, bool isHit, ClientRpcParams clientRpcParams = default)
+        {
+            SelfBoard.InstantiateMarker(gridPosition, isHit);
+
+            Phase = GamePhase.Shoot;
+        }
+
+        [ClientRpc]
+        public void GameOverClientRpc(string winningUser)
+        {
+            Phase = GamePhase.Ended;
+            //TODO: Winning logic
         }
     }
 }

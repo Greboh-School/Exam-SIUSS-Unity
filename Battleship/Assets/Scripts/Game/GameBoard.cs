@@ -9,10 +9,11 @@ namespace Game
 {
     public class GameBoard : NetworkBehaviour
     {
-        [Header("Ship placement")]
+        [Header("Ship building phase")]
         public PrefabManager PrefabManager;
         public GameObject ShipBeingPlaced;
         public int ShipRotation;
+        public bool InstantiateShipForPlacing = false;
 
         [Header("UI")]
         public TMP_Text Text_UserName;
@@ -22,19 +23,22 @@ namespace Game
         public List<GameObject> HitMarkers = new List<GameObject>();
         public List<Ship> Ships = new List<Ship>();
 
-        [Header("GameClient reference")]
+        [Header("Controlling GameClient")]
         public GameClient GameClient;
 
         private void Start()
         {
             PrefabManager = FindObjectOfType<PrefabManager>();
 
-            ShipBeingPlaced = PrefabManager.GetShipPrefabFromIndex(Ships.Count());
+            var prefab = PrefabManager.GetShipPrefabFromIndex(Ships.Count());
 
-            ShipBeingPlaced = Instantiate(ShipBeingPlaced, this.gameObject.transform);
+            if (InstantiateShipForPlacing)
+            {
+                ShipBeingPlaced = Instantiate(prefab, this.gameObject.transform);
+            }
         }
 
-        public void ShipBuilder()
+        public void BuildPhase()
         {
             Vector2 gridPosition = GridTools.GetGridPositionFromRayCast(this.gameObject);
 
@@ -77,7 +81,7 @@ namespace Game
             ShipBeingPlaced = Instantiate(ShipBeingPlaced, this.gameObject.transform);
         }
 
-        public void AddShipToServer(PlaceShipDTO dto)
+        public void ServerPlaceShip(PlaceShipDTO dto)
         {
             Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(dto.GridPosition, this.gameObject);
 
@@ -122,6 +126,43 @@ namespace Game
             Destroy(shipObj);
 
             return true;
+        }
+
+        public void ShootingPhase()
+        {
+            if(MouseMarker == null)
+            {
+                var prefab = PrefabManager.MouseMarkerPrefab;
+
+                MouseMarker = Instantiate(prefab, this.gameObject.transform);
+            }
+
+            Vector2 gridPosition = GridTools.GetGridPositionFromRayCast(this.gameObject);
+
+            if (gridPosition.x is -1)
+            {
+                return;
+            }
+
+            Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(gridPosition, this.gameObject);
+
+            MouseMarker.transform.localPosition = gridWorldPosition;
+
+            if (Input.GetMouseButtonDown(0)) // Left mouse button clicked
+            {
+                GameClient.SendShotToServerRpc(gridPosition);
+            }
+        }
+
+        public void InstantiateMarker(Vector2 gridPosition, bool isHit)
+        {
+            var marker = isHit ? PrefabManager.HitMarkerPrefab : PrefabManager.MissedMarkerPrefab;
+
+            Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(gridPosition, this.gameObject);
+
+            Instantiate(marker, this.gameObject.transform);
+
+            marker.transform.position = gridWorldPosition;
         }
     }
 }
