@@ -1,4 +1,5 @@
 ﻿using Player;
+using TMPro;
 using Unity.Netcode;
 using UnityEngine;
 
@@ -21,6 +22,9 @@ namespace Game
         public GamePhase Phase;
         public string UserName;
 
+        [Header("UI")]
+        public TMP_Text Text_TurnDisplay;
+
         public void Start()
         {
             if (!IsOwner && IsClient) Destroy(this.gameObject);
@@ -38,6 +42,8 @@ namespace Game
                 Id = NetworkManager.Singleton.LocalClientId;
 
                 SelfBoard.InstantiateShipForPlacing = true;
+
+                Text_TurnDisplay.text = "Place your ships! Use both mousebuttons!";
             }
         }
 
@@ -69,6 +75,19 @@ namespace Game
         private void ChangePhaseClientRpc(GamePhase phase, ClientRpcParams clientRpcParams = default)
         {
             Phase = phase;
+
+            switch (Phase)
+            {
+                case GamePhase.Ready:
+                    Text_TurnDisplay.text = $"Waiting on '{EnemyBoard.Text_UserName.text}' to finish";
+                    break;
+                case GamePhase.Wait:
+                    Text_TurnDisplay.text = $"'{EnemyBoard.Text_UserName.text}' is shooting";
+                    break;
+                case GamePhase.Shoot:
+                    Text_TurnDisplay.text = $"Your turn";
+                    break;
+            }
         }
 
         [ClientRpc]
@@ -153,7 +172,7 @@ namespace Game
         [ServerRpc]
         public void SendShotToServerRpc(Vector2 gridPosition)
         {
-            Server.AttackOtherClient(gridPosition, this);
+            Server.SendAttack(gridPosition, this);
 
             Destroy(EnemyBoard.MouseMarker);
             EnemyBoard.MouseMarker = null;
@@ -175,7 +194,8 @@ namespace Game
             return false;
         }
 
-        public void InstantiateHitmarker(Vector2 gridPosition, bool isHit, bool isShooter)
+        [ClientRpc]
+        public void InstantiateHitmarkerClientRpc(Vector2 gridPosition, bool isHit, bool isShooter)
         {
             var board = isShooter ? EnemyBoard : SelfBoard;
 
@@ -186,6 +206,9 @@ namespace Game
         public void GameOverClientRpc(string winningUser)
         {
             Phase = GamePhase.Ended;
+
+            Text_TurnDisplay.text = $"'{winningUser}' has won!";
+
             //TODO: Winning logic
         }
     }

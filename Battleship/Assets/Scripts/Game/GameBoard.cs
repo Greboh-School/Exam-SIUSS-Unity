@@ -176,15 +176,12 @@ namespace Game
         public void InstantiateHitmarker(Vector2 gridPosition, bool isHit)
         {
             var markerPrefab = isHit ? PrefabManager.HitMarkerPrefab : PrefabManager.MissedMarkerPrefab;
-            var markerObj = Instantiate(markerPrefab);
-
-            var markerNetworkObj = markerObj.GetComponent<NetworkObject>();
-            markerNetworkObj.Spawn();
+            var marker = Instantiate(markerPrefab);
 
             Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(gridPosition, this.gameObject);
 
-            markerNetworkObj.transform.SetParent(this.transform);
-            markerNetworkObj.transform.localPosition = gridWorldPosition;
+            marker.transform.SetParent(this.transform);
+            marker.transform.localPosition = gridWorldPosition;
         }
     }
 }

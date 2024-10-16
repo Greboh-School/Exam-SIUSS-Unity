@@ -49,14 +49,17 @@ namespace Game
             }
         } 
 
-        public void AttackOtherClient(Vector2 gridPosition, GameClient attackingClient)
+        public void SendAttack(Vector2 gridPosition, GameClient attackingClient)
         {
-            var targetClient = GetOtherClient(attackingClient);
+            var targetClient = GetOtherClient(attackingClient.Id);
 
             var isHit = targetClient.AnyShipsHit(gridPosition);
 
-            attackingClient.InstantiateHitmarker(gridPosition, isHit, true);
-            targetClient.InstantiateHitmarker(gridPosition, isHit, false);
+            attackingClient.EnemyBoard.InstantiateHitmarker(gridPosition, isHit);
+            targetClient.SelfBoard.InstantiateHitmarker(gridPosition, isHit);
+
+            attackingClient.InstantiateHitmarkerClientRpc(gridPosition, isHit, true);
+            targetClient.InstantiateHitmarkerClientRpc(gridPosition, isHit, false);
 
             attackingClient.ChangePhase(GamePhase.Wait);
             targetClient.ChangePhase(GamePhase.Shoot);
@@ -64,9 +67,9 @@ namespace Game
             CheckForGameOver();
         }
 
-        private GameClient GetOtherClient(GameClient knownClient)
+        private GameClient GetOtherClient(ulong knownClient)
         {
-            if (knownClient.Id == ClientA.Id)
+            if (knownClient == ClientA.Id)
             {
                 return ClientB;
             }
