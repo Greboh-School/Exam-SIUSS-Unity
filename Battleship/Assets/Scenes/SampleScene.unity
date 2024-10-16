@@ -3826,7 +3826,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   serverIP: 127.0.0.1:40000
   AutoStartNetworkSession: 1
-  sessionType: 0
+  sessionType: 1
 --- !u!1 &2080213764
 GameObject:
   m_ObjectHideFlags: 0

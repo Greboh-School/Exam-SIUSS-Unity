@@ -4,6 +4,8 @@ using UnityEngine;
 
 namespace Game
 {
+    public enum GamePhase { Build, Ready, Wait, Shoot, Ended }
+
     public class GameClient : NetworkBehaviour
     {
         [Header("Controlling Server")]
@@ -30,7 +32,7 @@ namespace Game
             {
                 var profile = FindObjectOfType<ProfileManager>().Profile;
 
-                RecieveClientInfoAndStartServerRpc(NetworkManager.Singleton.LocalClientId, profile.Username);
+                SendInfoAndStartServerRpc(NetworkManager.Singleton.LocalClientId, profile.Username);
 
                 SelfBoard.Text_UserName.text = UserName;
                 Id = NetworkManager.Singleton.LocalClientId;
@@ -64,15 +66,15 @@ namespace Game
         }
 
         [ClientRpc]
-        public void ChangePhaseClientRpc(GamePhase phase, ClientRpcParams clientRpcParams = default)
+        private void ChangePhaseClientRpc(GamePhase phase, ClientRpcParams clientRpcParams = default)
         {
             Phase = phase;
         }
 
         [ClientRpc]
-        public void PlaceShipClientRpc(PlaceShipDTO dto, ClientRpcParams clientRpcParams = default)
+        private void BuildNextShipClientRpc(PlaceShipDTO dto, ClientRpcParams clientRpcParams = default)
         {
-            SelfBoard.ClientPlaceShip(dto);
+            SelfBoard.BuildNextShip(dto);
         }
 
         [ServerRpc]
@@ -82,17 +84,17 @@ namespace Game
 
             if (isValidPosition)
             {
-                SelfBoard.ServerPlaceShip(dto);
+                SelfBoard.PlaceShip(dto);
 
                 //Advance ship to next variant
                 var type = (int)dto.Type;
                 dto.Type = (ShipType)type + 1;
 
-                var allPlaced = AreAllShipsArePlaced();
+                var isNextPhase = HasBuildPhaseEnded();
 
-                if (!allPlaced)
+                if (!isNextPhase)
                 {
-                    PlaceShipClientRpc(dto, new ClientRpcParams
+                    BuildNextShipClientRpc(dto, new ClientRpcParams
                     {
                         Send = new ClientRpcSendParams
                         {
@@ -103,21 +105,13 @@ namespace Game
             }
         }
 
-        private bool AreAllShipsArePlaced()
+        private bool HasBuildPhaseEnded()
         {
             if (SelfBoard.Ships.Count is 5)
             {
-                ChangePhaseClientRpc(GamePhase.Wait, new ClientRpcParams
-                {
-                    Send = new ClientRpcSendParams
-                    {
-                        TargetClientIds = new ulong[] { Id }
-                    }
-                });
+                ChangePhase(GamePhase.Ready);
 
-                Phase = GamePhase.Wait;
-
-                Server.RegisterPlayerAsReady(this);
+                Server.CheckForGameStart(this);
 
                 return true;
             }
@@ -125,8 +119,14 @@ namespace Game
             return false;
         }
 
+        [ClientRpc]
+        public void SendOppenentNameClientRpc(string userName, ClientRpcParams clientRpcParams = default)
+        {
+            EnemyBoard.Text_UserName.text = userName;
+        }
+
         [ServerRpc]
-        private void RecieveClientInfoAndStartServerRpc(ulong clientId, string userName)
+        private void SendInfoAndStartServerRpc(ulong clientId, string userName)
         {
             Id = clientId;
             UserName = userName;
@@ -134,19 +134,29 @@ namespace Game
 
             Server = FindObjectOfType<GameServer>();
 
-            Debug.Log($"Client registered: {userName}, {clientId}");
+            Server.RegisterPlayer(this);
         }
 
         public void ChangePhase(GamePhase phase)
         {
             Phase = phase;
-            ChangePhaseClientRpc(phase);
+
+            ChangePhaseClientRpc(Phase, new ClientRpcParams
+            {
+                Send = new ClientRpcSendParams
+                {
+                    TargetClientIds = new ulong[] { Id }
+                }
+            });
         }
 
         [ServerRpc]
         public void SendShotToServerRpc(Vector2 gridPosition)
         {
             Server.AttackOtherClient(gridPosition, this);
+
+            Destroy(EnemyBoard.MouseMarker);
+            EnemyBoard.MouseMarker = null;
         }
 
         public bool AnyShipsHit(Vector2 gridPosition)
@@ -165,20 +175,11 @@ namespace Game
             return false;
         }
 
-        [ClientRpc]
-        public void ShotResponseClientRpc(Vector2 gridPosition, bool isHit, ClientRpcParams clientRpcParams = default)
+        public void InstantiateHitmarker(Vector2 gridPosition, bool isHit, bool isShooter)
         {
-            EnemyBoard.InstantiateMarker(gridPosition, isHit);
+            var board = isShooter ? EnemyBoard : SelfBoard;
 
-            Phase = GamePhase.Wait;
-        }
-
-        [ClientRpc]
-        public void SendAttackClientRpc(Vector2 gridPosition, bool isHit, ClientRpcParams clientRpcParams = default)
-        {
-            SelfBoard.InstantiateMarker(gridPosition, isHit);
-
-            Phase = GamePhase.Shoot;
+            board.InstantiateHitmarker(gridPosition, isHit);
         }
 
         [ClientRpc]

@@ -18,9 +18,10 @@ namespace Game
         [SerializeField]
         public ShipType Type;
 
-        public void ConfigureValues(Vector2 gridPosition, int rotation, ShipType type)
+        public void ConfigureValues(PlaceShipDTO dto)
         {
-            Type = type;
+            Type = dto.Type;
+            var pos = dto.GridPosition;
 
             int shipLength = GetShipLength();
 
@@ -28,21 +29,21 @@ namespace Game
 
             for (int i = 0; i < shipLength; i++)
             {
-                _shipStatus.Add(new PositionStatus { Position = gridPosition, IsHit = false });
+                _shipStatus.Add(new PositionStatus { Position = pos, IsHit = false });
 
-                switch (rotation)
+                switch (dto.Rotation)
                 {
                     case 0:
-                        gridPosition.x += 1;
+                        pos.x += 1;
                         break;
                     case 90:
-                        gridPosition.y -= 1;
+                        pos.y -= 1;
                         break;
                     case 180:
-                        gridPosition.x -= 1;
+                        pos.x -= 1;
                         break;
                     case 270:
-                        gridPosition.y += 1;
+                        pos.y += 1;
                         break;
                     default:
                         Debug.LogError("Ship expects rotation of 90* intervals!");
@@ -70,11 +71,9 @@ namespace Game
                 Debug.LogError($"Position {gridPosition} with ship {Type} already hit!");
                 return false;
             }
-            else
-            {
-                positionStatus.IsHit = true;
-                return true;
-            }
+
+            positionStatus.IsHit = true;
+            return true;
         }
 
         public int GetShipLength()

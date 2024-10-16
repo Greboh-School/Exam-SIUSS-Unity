@@ -1,5 +1,4 @@
-﻿using Assets.Scripts.Game.New_shit;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using TMPro;
 using Unity.Netcode;
@@ -69,7 +68,11 @@ namespace Game
             }
         }
 
-        public void ClientPlaceShip(PlaceShipDTO dto)
+        /// <summary>
+        /// Client side logic for placing current ship at server told position, then getting next ship prepared.
+        /// </summary>
+        /// <param name="dto"></param>
+        public void BuildNextShip(PlaceShipDTO dto)
         {
             Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(dto.GridPosition, this.gameObject);
 
@@ -81,7 +84,11 @@ namespace Game
             ShipBeingPlaced = Instantiate(ShipBeingPlaced, this.gameObject.transform);
         }
 
-        public void ServerPlaceShip(PlaceShipDTO dto)
+        /// <summary>
+        /// Server side logic for instantiating ship and filling ship values.
+        /// </summary>
+        /// <param name="dto"></param>
+        public void PlaceShip(PlaceShipDTO dto)
         {
             Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(dto.GridPosition, this.gameObject);
 
@@ -91,6 +98,7 @@ namespace Game
             shipObj.transform.localRotation = Quaternion.Euler(0, dto.Rotation, 0);
 
             var shipScript = shipObj.GetComponent<Ship>();
+            shipScript.ConfigureValues(dto);
 
             GameClient.Health += shipScript.GetShipLength();
 
@@ -102,13 +110,24 @@ namespace Game
             var shipObj = Instantiate(PrefabManager.GetShipPrefabFromType(dto.Type));
             var shipScript = shipObj.GetComponent<Ship>();
 
-            shipScript.ConfigureValues(dto.GridPosition, dto.Rotation, dto.Type);
+            shipScript.ConfigureValues(dto);
 
             var positionStatusList = shipScript.GetShipStatus();
 
             foreach (var positionStatus in positionStatusList)
             {
                 var wantedPosition = positionStatus.Position;
+
+                if(wantedPosition.x < 0 || wantedPosition.x > 9)
+                {
+                    Destroy(shipObj);
+                    return false;
+                }
+                if (wantedPosition.y < 0 || wantedPosition.y > 9)
+                {
+                    Destroy(shipObj);
+                    return false;
+                }
 
                 foreach (var placedShips in Ships)
                 {
@@ -118,13 +137,13 @@ namespace Game
 
                     if (isOccupied is true)
                     {
+                        Destroy(shipObj);
                         return false;
                     }
                 }
             }
 
             Destroy(shipObj);
-
             return true;
         }
 
@@ -154,15 +173,18 @@ namespace Game
             }
         }
 
-        public void InstantiateMarker(Vector2 gridPosition, bool isHit)
+        public void InstantiateHitmarker(Vector2 gridPosition, bool isHit)
         {
-            var marker = isHit ? PrefabManager.HitMarkerPrefab : PrefabManager.MissedMarkerPrefab;
+            var markerPrefab = isHit ? PrefabManager.HitMarkerPrefab : PrefabManager.MissedMarkerPrefab;
+            var markerObj = Instantiate(markerPrefab);
+
+            var markerNetworkObj = markerObj.GetComponent<NetworkObject>();
+            markerNetworkObj.Spawn();
 
             Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(gridPosition, this.gameObject);
 
-            Instantiate(marker, this.gameObject.transform);
-
-            marker.transform.position = gridWorldPosition;
+            markerNetworkObj.transform.SetParent(this.transform);
+            markerNetworkObj.transform.localPosition = gridWorldPosition;
         }
     }
 }

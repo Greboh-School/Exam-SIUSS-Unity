@@ -1,6 +1,6 @@
 ﻿using UnityEngine;
 
-namespace Assets.Scripts.Game.New_shit
+namespace Game
 {
     public class GridTools : MonoBehaviour
     {

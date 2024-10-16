@@ -1,5 +1,4 @@
 ﻿using Unity.Netcode;
-using UnityEditor.PackageManager;
 using UnityEngine;
 
 namespace Game
@@ -10,9 +9,9 @@ namespace Game
         public GameClient ClientA;
         public GameClient ClientB;
 
-        public void RegisterPlayerAsReady(GameClient client)
+        public void RegisterPlayer(GameClient client)
         {
-            if(ClientA is null)
+            if (ClientA is null)
             {
                 ClientA = client;
             }
@@ -21,42 +20,58 @@ namespace Game
                 ClientB = client;
             }
 
-            if (ClientA is not null && ClientB is not null)
+            if (ClientA is not null & ClientB is not null)
+            {
+                ClientA.SendOppenentNameClientRpc(ClientB.UserName, new ClientRpcParams
+                {
+                    Send = new ClientRpcSendParams
+                    {
+                        TargetClientIds = new ulong[] { ClientA.Id }
+                    }
+                });
+
+                ClientB.SendOppenentNameClientRpc(ClientA.UserName, new ClientRpcParams
+                {
+                    Send = new ClientRpcSendParams
+                    {
+                        TargetClientIds = new ulong[] { ClientB.Id }
+                    }
+                });
+            }
+        }
+
+        public void CheckForGameStart(GameClient client)
+        {
+            if (ClientA.Phase is GamePhase.Ready && ClientB.Phase is GamePhase.Ready)
             {
                 //Both clients ready to fire! Let ClientA take first turn!
                 ClientA.ChangePhase(GamePhase.Shoot);
             }
-        }
+        } 
 
         public void AttackOtherClient(Vector2 gridPosition, GameClient attackingClient)
         {
-            var targetClient = GetOtherClient(attackingClient.Id);
+            var targetClient = GetOtherClient(attackingClient);
 
             var isHit = targetClient.AnyShipsHit(gridPosition);
 
-            attackingClient.ShotResponseClientRpc(gridPosition, isHit, new ClientRpcParams
-            {
-                Send = new ClientRpcSendParams
-                {
-                    TargetClientIds = new ulong[] { attackingClient.Id }
-                }
-            });
+            attackingClient.InstantiateHitmarker(gridPosition, isHit, true);
+            targetClient.InstantiateHitmarker(gridPosition, isHit, false);
 
-            targetClient.SendAttackClientRpc(gridPosition, isHit, new ClientRpcParams
-            {
-                Send = new ClientRpcSendParams
-                {
-                    TargetClientIds = new ulong[] { targetClient.Id }
-                }
-            });
+            attackingClient.ChangePhase(GamePhase.Wait);
+            targetClient.ChangePhase(GamePhase.Shoot);
 
             CheckForGameOver();
         }
 
-        private GameClient GetOtherClient(ulong knownClientId)
+        private GameClient GetOtherClient(GameClient knownClient)
         {
-            if (knownClientId == ClientA.Id) return ClientB;
-            else return ClientA;
+            if (knownClient.Id == ClientA.Id)
+            {
+                return ClientB;
+            }
+
+            return ClientA;
         }
 
         private void CheckForGameOver()
@@ -74,11 +89,5 @@ namespace Game
                 ClientB.Phase = GamePhase.Ended;
             }
         }
-        
-        
-        
-        
-        
-        //TODO: Test shooting logic
     }
 }
