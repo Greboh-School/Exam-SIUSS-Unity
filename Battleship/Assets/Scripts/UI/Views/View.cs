@@ -1,10 +1,12 @@
-﻿using UnityEngine;
+﻿using Assets.Scripts.API.Clients;
+using UnityEngine;
 
 public enum ViewType
 {
     Unknown = 0,
     Login,
     Registration,
+    MainMenu
 }
 
 namespace Views
@@ -15,11 +17,13 @@ namespace Views
 
         protected APIHandler APIHandler;
         protected ViewManager ViewManager;
+        protected RegistryClient RegistryClient;
         
         protected virtual void Awake()
         {
             APIHandler = FindFirstObjectByType<APIHandler>();
             ViewManager = FindFirstObjectByType<ViewManager>();
+            RegistryClient = FindFirstObjectByType<RegistryClient>();
             
             if (APIHandler is null)
             {

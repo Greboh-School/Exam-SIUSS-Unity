@@ -6,7 +6,7 @@ using UnityEngine;
 public class NetworkHandler : MonoBehaviour
 {
     [Header("Server Settings")]
-    [Tooltip("The IP which will be connected to / hosted on")]
+    [Tooltip("The IP which will be connected to / hosted on, in format IP:PORT")]
     public string serverIP = "127.0.0.1:40000";
     [Tooltip("Should a Client/Server start instantly - Mainly meant for server")]
     public bool AutoStartNetworkSession = false;
