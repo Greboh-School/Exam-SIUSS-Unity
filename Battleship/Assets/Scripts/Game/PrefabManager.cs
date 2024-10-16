@@ -21,21 +21,7 @@ public class PrefabManager : MonoBehaviour
     public GameObject ClientPrefab;
     public GameObject ServerPrefab;
 
-
-    public GameObject GetShipPrefabFromIndex(int index)
-    {
-        switch (index)
-        {
-            case 0: return CarrierPrefab;
-            case 1: return BattleshipPrefab;
-            case 2: return CruiserPrefab;
-            case 3: return SubmarinePrefab;
-            case 4: return DestroyerPrefab;
-            default: return null;
-        }
-    }
-
-    public GameObject GetShipPrefabFromType(ShipType type)
+    public GameObject GetShipPrefab(ShipType type)
     {
         switch (type)
         {

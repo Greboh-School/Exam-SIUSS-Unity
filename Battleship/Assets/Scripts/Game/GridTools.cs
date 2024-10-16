@@ -9,7 +9,7 @@ namespace Game
         /// <para>Will raycast using plane and convert hitpoint to local grid of 10x10</para>
         /// </summary>
         /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <returns>Vector2 with X-Y clamped to 0-9</returns>
         public static Vector2 GetGridPositionFromRayCast(GameObject obj)
         {
             Ray ray = Camera.main.ScreenPointToRay(Input.mousePosition);
@@ -57,10 +57,11 @@ namespace Game
 
         /// <summary>
         /// Will convert <paramref name="gridPosition"/> into worldspace position for given input <paramref name="obj"/>
+        /// <para>Use localPosition on object being moved for best results!</para>
         /// </summary>
         /// <param name="gridPosition"></param>
         /// <param name="obj"></param>
-        /// <returns></returns>
+        /// <returns>Vector3 worldposition</returns>
         public static Vector3 GetWorldPositionFromGrid(Vector2 gridPosition, GameObject obj)
         {
             // Get the MeshRenderer from the child plane object

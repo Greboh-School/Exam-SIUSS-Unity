@@ -6,12 +6,15 @@ using UnityEngine;
 
 namespace Game
 {
-    public class GameBoard : NetworkBehaviour
+    public class Board : NetworkBehaviour
     {
         [Header("Ship building phase")]
-        public PrefabManager PrefabManager;
-        public GameObject ShipBeingPlaced;
-        public int ShipRotation;
+        [SerializeField]
+        private PrefabManager PrefabManager;
+        [SerializeField]
+        private GameObject ShipBeingPlaced;
+        [SerializeField]
+        private int ShipRotation;
         public bool InstantiateShipForPlacing = false;
 
         [Header("UI")]
@@ -19,17 +22,18 @@ namespace Game
         public GameObject MouseMarker;
 
         [field: Header("Markers & Ships")]
-        public List<GameObject> HitMarkers = new List<GameObject>();
+        [field: SerializeField]
+        private List<GameObject> HitMarkers = new List<GameObject>();
         public List<Ship> Ships = new List<Ship>();
 
         [Header("Controlling GameClient")]
-        public GameClient GameClient;
+        public Client GameClient;
 
         private void Start()
         {
             PrefabManager = FindObjectOfType<PrefabManager>();
 
-            var prefab = PrefabManager.GetShipPrefabFromIndex(Ships.Count());
+            var prefab = PrefabManager.GetShipPrefab(ShipType.Carrier);
 
             if (InstantiateShipForPlacing)
             {
@@ -68,46 +72,9 @@ namespace Game
             }
         }
 
-        /// <summary>
-        /// Client side logic for placing current ship at server told position, then getting next ship prepared.
-        /// </summary>
-        /// <param name="dto"></param>
-        public void BuildNextShip(PlaceShipDTO dto)
-        {
-            Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(dto.GridPosition, this.gameObject);
-
-            ShipBeingPlaced.transform.localPosition = gridWorldPosition;
-            ShipBeingPlaced.transform.localRotation = Quaternion.Euler(0, dto.Rotation, 0);
-
-            ShipBeingPlaced = PrefabManager.GetShipPrefabFromType(dto.Type);
-
-            ShipBeingPlaced = Instantiate(ShipBeingPlaced, this.gameObject.transform);
-        }
-
-        /// <summary>
-        /// Server side logic for instantiating ship and filling ship values.
-        /// </summary>
-        /// <param name="dto"></param>
-        public void PlaceShip(PlaceShipDTO dto)
-        {
-            Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(dto.GridPosition, this.gameObject);
-
-            var shipObj = Instantiate(PrefabManager.GetShipPrefabFromType(dto.Type), this.gameObject.transform);
-
-            shipObj.transform.localPosition = gridWorldPosition;
-            shipObj.transform.localRotation = Quaternion.Euler(0, dto.Rotation, 0);
-
-            var shipScript = shipObj.GetComponent<Ship>();
-            shipScript.ConfigureValues(dto);
-
-            GameClient.Health += shipScript.GetShipLength();
-
-            Ships.Add(shipScript);
-        }
-
         public bool IsShipPositionValid(PlaceShipDTO dto)
         {
-            var shipObj = Instantiate(PrefabManager.GetShipPrefabFromType(dto.Type));
+            var shipObj = Instantiate(PrefabManager.GetShipPrefab(dto.Type));
             var shipScript = shipObj.GetComponent<Ship>();
 
             shipScript.ConfigureValues(dto);
@@ -147,6 +114,43 @@ namespace Game
             return true;
         }
 
+        /// <summary>
+        /// Server side logic for instantiating ship and filling ship values.
+        /// </summary>
+        /// <param name="dto"></param>
+        public void PlaceShip(PlaceShipDTO dto)
+        {
+            Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(dto.GridPosition, this.gameObject);
+
+            var shipObj = Instantiate(PrefabManager.GetShipPrefab(dto.Type), this.gameObject.transform);
+
+            shipObj.transform.localPosition = gridWorldPosition;
+            shipObj.transform.localRotation = Quaternion.Euler(0, dto.Rotation, 0);
+
+            var shipScript = shipObj.GetComponent<Ship>();
+            shipScript.ConfigureValues(dto);
+
+            GameClient.Health += shipScript.GetShipLength();
+
+            Ships.Add(shipScript);
+        }
+
+        /// <summary>
+        /// Client side logic for placing current ship at server told position, then getting next ship prepared.
+        /// </summary>
+        /// <param name="dto"></param>
+        public void BuildNextShip(PlaceShipDTO dto)
+        {
+            Vector3 gridWorldPosition = GridTools.GetWorldPositionFromGrid(dto.GridPosition, this.gameObject);
+
+            ShipBeingPlaced.transform.localPosition = gridWorldPosition;
+            ShipBeingPlaced.transform.localRotation = Quaternion.Euler(0, dto.Rotation, 0);
+
+            ShipBeingPlaced = PrefabManager.GetShipPrefab(dto.Type);
+
+            ShipBeingPlaced = Instantiate(ShipBeingPlaced, this.gameObject.transform);
+        }
+
         public void ShootingPhase()
         {
             if(MouseMarker == null)
@@ -170,6 +174,9 @@ namespace Game
             if (Input.GetMouseButtonDown(0)) // Left mouse button clicked
             {
                 GameClient.SendShotToServerRpc(gridPosition);
+
+                Destroy(MouseMarker);
+                MouseMarker = null;
             }
         }
 

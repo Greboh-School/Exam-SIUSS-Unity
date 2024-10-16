@@ -100,7 +100,7 @@ namespace Network
         {
             Debug.Log($"Client disconnected: {clientId}");
 
-            var server = FindObjectOfType<GameServer>();
+            var server = FindObjectOfType<Server>();
             server.OnClientDisconnect(clientId);
         }
     }

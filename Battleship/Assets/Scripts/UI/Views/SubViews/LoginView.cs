@@ -39,11 +39,6 @@ public class LoginView : View
     {
         _loginButton?.onClick.AddListener(OnLoginClicked);
         _registrationButton?.onClick.AddListener(OnRegistrationClicked);
-
-        //TODO: REMOVE BYPASS
-        _username.text = "HCeption";
-        _password.text = "Test-1234";
-        OnLoginClicked();
     }
 
     private async void OnLoginClicked()
