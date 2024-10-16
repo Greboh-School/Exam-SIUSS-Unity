@@ -92,5 +92,38 @@ namespace Game
                 ClientB.Phase = GamePhase.Ended;
             }
         }
+
+        public void OnClientDisconnect(ulong clientId)
+        {
+            GameClient remainingClient = null;
+
+            if (ClientA.Id == clientId)
+            {
+                Destroy(ClientA.gameObject);
+                ClientA = null;
+
+                remainingClient = ClientB;
+            }
+            if (ClientB.Id == clientId)
+            {
+                Destroy(ClientB.gameObject);
+                ClientB = null;
+
+                remainingClient = ClientA;
+            }
+
+            if (remainingClient is null)
+            {
+                Debug.Log("Both clients have disconneted");
+                return;
+            }
+
+            remainingClient.DisconnectClientRpc();
+
+            if (remainingClient.Phase != GamePhase.Build || remainingClient.Phase != GamePhase.Ended)
+            {
+                remainingClient.ChangePhase(GamePhase.Ready);
+            }
+        }
     }
 }

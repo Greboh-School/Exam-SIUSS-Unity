@@ -1,3 +1,4 @@
+using Game;
 using System;
 using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
@@ -98,6 +99,9 @@ namespace Network
         private void OnClientDisconnected(ulong clientId)
         {
             Debug.Log($"Client disconnected: {clientId}");
+
+            var server = FindObjectOfType<GameServer>();
+            server.OnClientDisconnect(clientId);
         }
     }
 }

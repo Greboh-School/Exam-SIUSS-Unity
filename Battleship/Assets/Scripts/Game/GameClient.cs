@@ -211,5 +211,11 @@ namespace Game
 
             //TODO: Winning logic
         }
+
+        [ClientRpc]
+        public void DisconnectClientRpc()
+        {
+            Text_TurnDisplay.text = $"Your opponent has disconnected - The game will reset";
+        }
     }
 }
