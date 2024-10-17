@@ -67,10 +67,11 @@ namespace Assets.Scripts.UI.Views.SubViews
 
         private async void OnGetServerClicked()
         {
-            var getServerRequest = new GetServerRequest { AccessToken = _profileManager.Profile.AccessToken };
-
+            //TODO: Implement Registry once its done!
+            //var getServerRequest = new GetServerRequest { AccessToken = _profileManager.Profile.AccessToken };
             //var dto = await RegistryClient.GetServer(getServerRequest);
 
+            //TODO: Remove debug Bypass once Registry is done!
             var dto = new API.Models.DTOs.ServerDTO { IP = "127.0.0.1", Port = "40000"}; //TODO: REMOVE DEBUG BYPASS
 
             if (dto is null)

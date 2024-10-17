@@ -32,9 +32,7 @@ namespace Game
         {
             if (!IsOwner && IsClient)
             {
-                //TODO: Find better implementation that doesnt require sharing board to enemy client
-                // This simply moves the Enemy clients board out of camera
-                // No need to fear ship positions being shared tho, its only Hitmarkers that are shared! So no cheating!
+                // Hacky implementation to 'hide' enemy client board - No ships are shared, so no cheating!
                 transform.localPosition = new Vector3(0, 0, 30);
             }
 
