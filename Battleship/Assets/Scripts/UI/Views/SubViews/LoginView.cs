@@ -32,7 +32,7 @@ public class LoginView : View
         if (_registrationButton is null)
         {
             Debug.LogError("Registration button is null");
-        }
+        }        
     }
 
     private void Start()

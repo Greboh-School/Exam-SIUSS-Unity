@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using UnityEngine;
-
-namespace Assets.Scripts.API.Models.DTOs
+﻿namespace Assets.Scripts.API.Models.DTOs
 {
     public class ServerDTO
     {
