@@ -263,7 +263,7 @@ Transform:
   m_GameObject: {fileID: 2822858996670703204}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalPosition: {x: 0, y: 0, z: -2}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -312,6 +312,7 @@ MonoBehaviour:
   Health: 0
   Phase: 0
   UserName: 
+  Text_TurnDisplay: {fileID: 9204040695580664796}
 --- !u!1001 &5729902591594433054
 PrefabInstance:
   m_ObjectHideFlags: 0

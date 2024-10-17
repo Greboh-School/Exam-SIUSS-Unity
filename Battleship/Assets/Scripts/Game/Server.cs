@@ -108,8 +108,8 @@ namespace Game
             attackingClient.EnemyBoard.InstantiateHitmarker(gridPosition, isHit);
             targetClient.SelfBoard.InstantiateHitmarker(gridPosition, isHit);
 
-            attackingClient.InstantiateHitmarkerClientRpc(gridPosition, isHit, true);
-            targetClient.InstantiateHitmarkerClientRpc(gridPosition, isHit, false);
+            attackingClient.ShotResponseClientRpc(gridPosition, isHit);
+            targetClient.SendShotToClientRpc(gridPosition, isHit);
 
             attackingClient.ChangePhase(GamePhase.Wait);
             targetClient.ChangePhase(GamePhase.Shoot);
@@ -122,15 +122,22 @@ namespace Game
         /// </summary>
         private void CheckForGameOver()
         {
+            string winningClientName = string.Empty;
+
             if (ClientA.Health is 0)
             {
-                ClientA.GameOverClientRpc(ClientB.name);
-                ClientA.Phase = GamePhase.Ended;
-                ClientB.Phase = GamePhase.Ended;
+                winningClientName = ClientB.UserName;
             }
             else if (ClientB.Health is 0)
             {
-                ClientB.GameOverClientRpc(ClientA.name);
+                winningClientName = ClientA.UserName;
+            }
+
+            if(winningClientName != string.Empty)
+            {
+                ClientA.GameOverClientRpc(winningClientName);
+                ClientB.GameOverClientRpc(winningClientName);
+
                 ClientA.Phase = GamePhase.Ended;
                 ClientB.Phase = GamePhase.Ended;
             }

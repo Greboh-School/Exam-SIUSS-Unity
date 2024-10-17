@@ -25,11 +25,18 @@ namespace Game
         public string UserName;
 
         [Header("UI")]
+        [SerializeField]
         private TMP_Text Text_TurnDisplay;
 
         public void Start()
         {
-            if (!IsOwner && IsClient) Destroy(this.gameObject);
+            if (!IsOwner && IsClient)
+            {
+                //TODO: Find better implementation that doesnt require sharing board to enemy client
+                // This simply moves the Enemy clients board out of camera
+                // No need to fear ship positions being shared tho, its only Hitmarkers that are shared! So no cheating!
+                transform.localPosition = new Vector3(0, 0, 30);
+            }
 
             EnemyBoard.GameClient = this;
             SelfBoard.GameClient = this;
@@ -189,11 +196,9 @@ namespace Game
                 case GamePhase.Ready:
                     Text_TurnDisplay.text = $"Waiting on '{EnemyBoard.Text_UserName.text}' to finish";
                     break;
-
                 case GamePhase.Wait:
                     Text_TurnDisplay.text = $"'{EnemyBoard.Text_UserName.text}' is shooting";
                     break;
-
                 case GamePhase.Shoot:
                     Text_TurnDisplay.text = $"Your turn";
                     break;
@@ -228,11 +233,17 @@ namespace Game
         }
 
         [ClientRpc]
-        public void InstantiateHitmarkerClientRpc(Vector2 gridPosition, bool isHit, bool isShooter)
+        public void ShotResponseClientRpc(Vector2 gridPosition, bool isHit)
         {
-            var board = isShooter ? EnemyBoard : SelfBoard;
+            EnemyBoard.InstantiateHitmarker(gridPosition, isHit);
 
-            board.InstantiateHitmarker(gridPosition, isHit);
+            Destroy(EnemyBoard.MouseMarker.gameObject);
+        }
+
+        [ClientRpc]
+        public void SendShotToClientRpc(Vector2 gridPosition, bool isHit)
+        {
+            SelfBoard.InstantiateHitmarker(gridPosition, isHit);
         }
 
         [ClientRpc]

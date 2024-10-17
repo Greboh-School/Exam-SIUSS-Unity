@@ -174,9 +174,6 @@ namespace Game
             if (Input.GetMouseButtonDown(0)) // Left mouse button clicked
             {
                 GameClient.SendShotToServerRpc(gridPosition);
-
-                Destroy(MouseMarker);
-                MouseMarker = null;
             }
         }
 
