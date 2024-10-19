@@ -1,8 +1,11 @@
-﻿using Assets.Scripts.API.Models.Requests;
+﻿using Assets.Scripts.API.Models.DTOs;
+using Assets.Scripts.API.Models.Requests;
 using Network;
 using Player;
+using System;
 using TMPro;
 using UnityEngine;
+using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using Views;
 
@@ -67,23 +70,31 @@ namespace Assets.Scripts.UI.Views.SubViews
 
         private async void OnGetServerClicked()
         {
-            //TODO: Implement Registry once its done!
-            //var getServerRequest = new GetServerRequest { AccessToken = _profileManager.Profile.AccessToken };
-            //var dto = await RegistryClient.GetServer(getServerRequest);
+            var getServerRequest = new PlayerConnectionRequest
+            { 
+                UserName = _profileManager.Profile.Username,
+                UserId=_profileManager.Profile.UserId
+            };
 
-            //TODO: Remove debug Bypass once Registry is done!
-            var dto = new API.Models.DTOs.ServerDTO { IP = "127.0.0.1", Port = "40000"}; //TODO: REMOVE DEBUG BYPASS
+            var dto = await RegistryClient.GetServer(getServerRequest);
 
             if (dto is null)
             {
-                Debug.LogError("Failed attempt at getting ServerIP from Registry");
+                Debug.LogError("Failed getting valid response from Registry");
+
+                return;
+            }
+
+            if(dto.ServerAddress is null)
+            {
+                Debug.LogError("Registry returned DTO with no serverAddress");
 
                 return;
             }
 
             var networkSession = FindObjectOfType<NetworkHandler>();
 
-            networkSession.serverIP = $"{dto.IP}:{dto.Port}";
+            networkSession.serverIP = $"{dto.ServerAddress}:{dto.ServerPort}";
             networkSession.StartSession();
 
             ViewManager.SwitchView(ViewType.GameHUD);

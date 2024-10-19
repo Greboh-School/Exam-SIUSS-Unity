@@ -1,4 +1,5 @@
 ﻿using Player;
+using System;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -23,6 +24,7 @@ namespace Game
         public int Health;
         public GamePhase Phase;
         public string UserName;
+        public Guid UserId;
 
         [Header("UI")]
         [SerializeField]
@@ -43,7 +45,7 @@ namespace Game
             {
                 var profile = FindObjectOfType<ProfileManager>().Profile;
 
-                SendInfoAndStartServerRpc(NetworkManager.Singleton.LocalClientId, profile.Username);
+                SendInfoAndStartServerRpc(NetworkManager.Singleton.LocalClientId, profile.Username, profile.UserId);
 
                 SelfBoard.Text_UserName.text = UserName;
                 Id = NetworkManager.Singleton.LocalClientId;
@@ -88,10 +90,11 @@ namespace Game
         /// <param name="clientId"></param>
         /// <param name="userName"></param>
         [ServerRpc]
-        private void SendInfoAndStartServerRpc(ulong clientId, string userName)
+        private void SendInfoAndStartServerRpc(ulong clientId, string userName, Guid userId)
         {
             Id = clientId;
             UserName = userName;
+            UserId = userId;
             SelfBoard.GameClient = this;
 
             Server = FindObjectOfType<Server>();

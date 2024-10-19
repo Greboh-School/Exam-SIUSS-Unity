@@ -1,5 +1,6 @@
 ﻿using Assets.Scripts.API.Models.DTOs;
 using Assets.Scripts.API.Models.Requests;
+using System;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using UnityEngine;
@@ -8,16 +9,16 @@ namespace Assets.Scripts.API.Clients
 {
     public class RegistryClient : BaseClient
     {
-        public async Task<ServerDTO> GetServer(GetServerRequest getServerRequest)
+        public async Task<PlayerDTO> GetServer(PlayerConnectionRequest request)
         {
-            var response = await Client.PostAsJsonAsync($"{Client.BaseAddress}/registry", getServerRequest);
+            var response = await Client.PostAsJsonAsync($"{Client.BaseAddress}/PlayerRegistry", request);
 
             if (!response.IsSuccessStatusCode)
             {
                 Debug.LogError($"Status: {response.StatusCode} : Reason {response.RequestMessage}");
             }
 
-            var dto = await response.Content.ReadFromJsonAsync<ServerDTO>();
+            var dto = await response.Content.ReadFromJsonAsync<PlayerDTO>();
 
             if (dto is null)
             {
@@ -25,6 +26,16 @@ namespace Assets.Scripts.API.Clients
             }
 
             return dto;
+        }
+
+        public async Task RemovePlayerFromRegistry(Guid id)
+        {
+            var response = await Client.DeleteAsync($"{Client.BaseAddress}/PlayerRegistry/{id}");
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Debug.LogError("Failed deleting Player from Registry!");
+            }
         }
     }
 }
