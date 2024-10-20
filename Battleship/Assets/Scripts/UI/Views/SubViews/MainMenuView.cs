@@ -73,7 +73,7 @@ namespace Assets.Scripts.UI.Views.SubViews
             var getServerRequest = new PlayerConnectionRequest
             { 
                 UserName = _profileManager.Profile.Username,
-                UserId=_profileManager.Profile.UserId
+                UserId = _profileManager.Profile.UserId
             };
 
             var dto = await RegistryClient.GetServer(getServerRequest);

@@ -11,7 +11,9 @@ namespace Assets.Scripts.API.Clients
     {
         public async Task<PlayerDTO> GetServer(PlayerConnectionRequest request)
         {
-            var response = await Client.PostAsJsonAsync($"{Client.BaseAddress}/PlayerRegistry", request);
+            //var response = await Client.PostAsJsonAsync($"{Client.BaseAddress}/PlayerRegistry", request);
+            var response = await Client.PostAsJsonAsync($"http://localhost:5341/api/v1/PlayerRegistry", request);
+        
 
             if (!response.IsSuccessStatusCode)
             {

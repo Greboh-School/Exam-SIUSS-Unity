@@ -45,7 +45,7 @@ namespace Game
             {
                 var profile = FindObjectOfType<ProfileManager>().Profile;
 
-                SendInfoAndStartServerRpc(NetworkManager.Singleton.LocalClientId, profile.Username, profile.UserId);
+                SendInfoAndStartServerRpc(NetworkManager.Singleton.LocalClientId, profile.Username, profile.UserId.ToString());
 
                 SelfBoard.Text_UserName.text = UserName;
                 Id = NetworkManager.Singleton.LocalClientId;
@@ -90,11 +90,11 @@ namespace Game
         /// <param name="clientId"></param>
         /// <param name="userName"></param>
         [ServerRpc]
-        private void SendInfoAndStartServerRpc(ulong clientId, string userName, Guid userId)
+        private void SendInfoAndStartServerRpc(ulong clientId, string userName, string userIdGuid)
         {
             Id = clientId;
             UserName = userName;
-            UserId = userId;
+            UserId = Guid.Parse(userIdGuid);
             SelfBoard.GameClient = this;
 
             Server = FindObjectOfType<Server>();
