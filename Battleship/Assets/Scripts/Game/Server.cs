@@ -1,4 +1,5 @@
-﻿using Unity.Netcode;
+﻿using System;
+using Unity.Netcode;
 using UnityEngine;
 
 namespace Game
@@ -26,12 +27,15 @@ namespace Game
         /// Destroy Objects and references of disconnected client.
         /// </summary>
         /// <param name="clientId"></param>
-        public void OnClientDisconnect(ulong clientId)
+        /// <returns>UserId Guid of the disconnected client</returns>
+        public Guid OnClientDisconnect(ulong clientId)
         {
             Client remainingClient = null;
+            Guid disconnectedClientUserId = Guid.Empty;
 
             if (ClientA.Id == clientId)
             {
+                disconnectedClientUserId = ClientA.UserId;
                 Destroy(ClientA.gameObject);
                 ClientA = null;
 
@@ -39,6 +43,7 @@ namespace Game
             }
             if (ClientB.Id == clientId)
             {
+                disconnectedClientUserId = ClientB.UserId;
                 Destroy(ClientB.gameObject);
                 ClientB = null;
 
@@ -48,7 +53,7 @@ namespace Game
             if (remainingClient is null)
             {
                 Debug.Log("Both clients have disconneted");
-                return;
+                return Guid.Empty;
             }
 
             remainingClient.DisconnectClientRpc();
@@ -57,6 +62,8 @@ namespace Game
             {
                 remainingClient.ChangePhase(GamePhase.Ready);
             }
+
+            return disconnectedClientUserId;
         }
 
         /// <summary>

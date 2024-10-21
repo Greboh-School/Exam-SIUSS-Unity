@@ -1,3 +1,4 @@
+using Assets.Scripts.API.Clients;
 using Game;
 using System;
 using Unity.Netcode;
@@ -96,12 +97,16 @@ namespace Network
             networkObj.SpawnWithOwnership(clientId);
         }
 
-        private void OnClientDisconnected(ulong clientId)
+        private async void OnClientDisconnected(ulong clientId)
         {
             Debug.Log($"Client disconnected: {clientId}");
 
             var server = FindObjectOfType<Server>();
-            server.OnClientDisconnect(clientId);
+
+            var userId = server.OnClientDisconnect(clientId);
+            var registryClient = FindObjectOfType<RegistryClient>();
+
+            await registryClient.RemovePlayerFromRegistry(userId);
         }
     }
 }
