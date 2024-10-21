@@ -12,7 +12,12 @@ namespace Assets.Scripts.API.Clients
         public async Task<PlayerDTO> GetServer(PlayerConnectionRequest request)
         {
             //var response = await Client.PostAsJsonAsync($"{Client.BaseAddress}/PlayerRegistry", request);
-            var response = await Client.PostAsJsonAsync($"http://localhost:5341/api/v1/PlayerRegistry", request);
+
+#if UNITY_STANDALONE_LINUX && !UNITY_EDITOR && UNITY_SERVER
+            Client.BaseAddress = new Uri("http://api-services-registry:5277/api/v1");
+#endif
+
+            var response = await Client.PostAsJsonAsync($"http://localhost:7223/api/v1/Players", request);
         
 
             if (!response.IsSuccessStatusCode)
