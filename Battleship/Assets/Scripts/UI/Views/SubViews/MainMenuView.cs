@@ -76,7 +76,7 @@ namespace Assets.Scripts.UI.Views.SubViews
                 UserId = _profileManager.Profile.UserId
             };
 
-            var dto = await RegistryClient.GetServer(getServerRequest);
+            var dto = await APIHandler.GetServer(getServerRequest);
 
             if (dto is null)
             {
