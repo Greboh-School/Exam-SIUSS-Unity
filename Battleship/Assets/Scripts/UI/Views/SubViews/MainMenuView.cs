@@ -71,8 +71,12 @@ namespace Assets.Scripts.UI.Views.SubViews
             //var getServerRequest = new GetServerRequest { AccessToken = _profileManager.Profile.AccessToken };
             //var dto = await RegistryClient.GetServer(getServerRequest);
 
+<<<<<<< Updated upstream
             //TODO: Remove debug Bypass once Registry is done!
             var dto = new API.Models.DTOs.ServerDTO { IP = "127.0.0.1", Port = "40000"}; //TODO: REMOVE DEBUG BYPASS
+=======
+            var dto = await API.RegisterClient(request);
+>>>>>>> Stashed changes
 
             if (dto is null)
             {

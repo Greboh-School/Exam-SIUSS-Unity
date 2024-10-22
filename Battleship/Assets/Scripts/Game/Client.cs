@@ -1,4 +1,9 @@
 ﻿using Player;
+<<<<<<< Updated upstream
+=======
+using System;
+using Assets.Scripts.UI.Views.SubViews;
+>>>>>>> Stashed changes
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -27,8 +32,14 @@ namespace Game
         [Header("UI")]
         [SerializeField]
         private TMP_Text Text_TurnDisplay;
+<<<<<<< Updated upstream
 
         public void Start()
+=======
+        [SerializeField]
+        private GameHUD _hud;
+        public override void OnNetworkSpawn()
+>>>>>>> Stashed changes
         {
             if (!IsOwner && IsClient)
             {
@@ -52,6 +63,22 @@ namespace Game
 
                 Text_TurnDisplay.text = "Place your ships! Use both mousebuttons!";
             }
+<<<<<<< Updated upstream
+=======
+            
+            var profile = FindObjectOfType<ProfileManager>().Profile;
+            AccessToken = profile.AccessToken;
+
+            SendInfoAndStartServerRpc(NetworkManager.Singleton.LocalClientId, profile.Username, profile.UserId.ToString());
+
+            SelfBoard.Text_UserName.text = UserName;
+            Id = NetworkManager.Singleton.LocalClientId;
+
+            SelfBoard.InstantiateShipForPlacing = true;
+
+            Text_TurnDisplay.text = "Place your ships! Use both mousebuttons!";
+            _hud = FindFirstObjectByType<GameHUD>();
+>>>>>>> Stashed changes
         }
 
         public void Update()
@@ -258,6 +285,12 @@ namespace Game
             Text_TurnDisplay.text = $"'{winningUser}' has won!";
 
             //TODO: Winning logic
+        }
+        
+        [ClientRpc]
+        public void SetHudMessageClientRPC(string messageType, string message, string sender, ClientRpcParams clientRpcParams = default)
+        {
+            _hud.SetMessage(messageType, message, sender);
         }
     }
 }

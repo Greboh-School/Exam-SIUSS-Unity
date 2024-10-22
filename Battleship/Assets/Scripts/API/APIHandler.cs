@@ -33,4 +33,39 @@ public class APIHandler : MonoBehaviour
     {
         return await _authenticationClient.Register(request);
     }
+<<<<<<< Updated upstream
+=======
+
+    public async Task<PlayerDTO> RegisterClient(PlayerConnectionRequest request)
+    {
+        return await _registryClient.RegisterClient(request);
+    }
+    
+    public async Task RemovePlayerFromRegistry(Guid id)
+    {
+        await _registryClient.RemovePlayerFromRegistry(id);
+    }
+
+    public async Task<ServerDTO> RegisterServer(ServerRegistrationRequest request)
+    {
+        var dto = await _registryClient.RegisterServer(request);
+
+        return dto;
+    }
+    
+    public async Task RemoveServer(Guid id)
+    {
+        await _registryClient.RemoveServer(id);
+    }
+
+    public async Task CreateServerQueues(Guid id)
+    {
+        await _registryClient.CreateServerQueues(id);
+    }
+    
+    public async Task SendMessage(MessageDTO dto)
+    {
+        await _registryClient.SendMessage(dto);
+    }
+>>>>>>> Stashed changes
 }
