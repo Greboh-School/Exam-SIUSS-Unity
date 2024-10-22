@@ -1,4 +1,8 @@
+using System;
 using System.Threading.Tasks;
+using API.Models.Requests;
+using Assets.Scripts.API.Clients;
+using Assets.Scripts.API.Models.DTOs;
 using Assets.Scripts.API.Models.Requests;
 using Clients;
 using Player;
@@ -8,11 +12,14 @@ using UnityEngine;
 public class APIHandler : MonoBehaviour
 {
     private AuthenticationClient _authenticationClient;
+    private RegistryClient _registryClient;
+
     private ProfileManager _profileManager;
     
     private void Start()
     {
         _authenticationClient = FindObjectOfType<AuthenticationClient>();
+        _registryClient = FindObjectOfType<RegistryClient>();
         _profileManager = FindObjectOfType<ProfileManager>();
     }
     
@@ -33,8 +40,7 @@ public class APIHandler : MonoBehaviour
     {
         return await _authenticationClient.Register(request);
     }
-<<<<<<< Updated upstream
-=======
+
 
     public async Task<PlayerDTO> RegisterClient(PlayerConnectionRequest request)
     {
@@ -67,5 +73,4 @@ public class APIHandler : MonoBehaviour
     {
         await _registryClient.SendMessage(dto);
     }
->>>>>>> Stashed changes
 }

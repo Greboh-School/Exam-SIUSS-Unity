@@ -67,28 +67,22 @@ namespace Assets.Scripts.UI.Views.SubViews
 
         private async void OnGetServerClicked()
         {
-            //TODO: Implement Registry once its done!
-            //var getServerRequest = new GetServerRequest { AccessToken = _profileManager.Profile.AccessToken };
-            //var dto = await RegistryClient.GetServer(getServerRequest);
+            var request = new PlayerConnectionRequest
+            { 
+                UserName = _profileManager.Profile.Username,
+                UserId = _profileManager.Profile.UserId
+            };
 
-<<<<<<< Updated upstream
-            //TODO: Remove debug Bypass once Registry is done!
-            var dto = new API.Models.DTOs.ServerDTO { IP = "127.0.0.1", Port = "40000"}; //TODO: REMOVE DEBUG BYPASS
-=======
             var dto = await API.RegisterClient(request);
->>>>>>> Stashed changes
 
             if (dto is null)
             {
-                Debug.LogError("Failed attempt at getting ServerIP from Registry");
-
                 return;
             }
 
             var networkSession = FindObjectOfType<NetworkHandler>();
 
-            networkSession.serverIP = $"{dto.IP}:{dto.Port}";
-            networkSession.StartSession();
+            networkSession.StartSession(dto.ServerAddress, dto.ServerPort);
 
             ViewManager.SwitchView(ViewType.GameHUD);
         }

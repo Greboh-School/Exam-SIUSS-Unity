@@ -1,32 +1,27 @@
-<<<<<<< Updated upstream
-﻿using Unity.Netcode;
-=======
-﻿using System;
-using System.Collections.Generic;
+using System;
 using System.Linq;
+using ClientRpcParams = Unity.Netcode.ClientRpcParams;
+using ClientRpcSendParams = Unity.Netcode.ClientRpcSendParams;
+using Unity.Netcode;
+using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading.Tasks;
 using API.Models.Requests;
 using Assets.Scripts.API.Models.DTOs;
-using Unity.Netcode;
 using Unity.Netcode.Transports.UTP;
->>>>>>> Stashed changes
 using UnityEngine;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
-using UnityEditor;
 using MessageType = Assets.Scripts.API.Models.DTOs.MessageType;
 
 namespace Game
 {
-    public class Server : MonoBehaviour
+    public class Server : NetworkBehaviour
     {
         [Header("Boards")]
         public Client ClientA;
         public Client ClientB;
-
-<<<<<<< Updated upstream
-=======
+        
         public Guid Id;
 
         private string Ip = "127.0.0.1:6969";
@@ -194,7 +189,6 @@ namespace Game
             OnClientDisconnect(id);
         }
 
->>>>>>> Stashed changes
         /// <summary>
         /// Once both players have finished building phase the shooting phase should start.
         /// </summary>
@@ -251,13 +245,10 @@ namespace Game
         /// <param name="client"></param>
         public void RegisterPlayer(Client client)
         {
-<<<<<<< Updated upstream
-=======
             _players.Add(client.Id, client);
 
             Debug.Log($"Player {client.Id}:{client.UserId} has joined the server");
             
->>>>>>> Stashed changes
             if (ClientA is null)
             {
                 ClientA = client;
