@@ -70,32 +70,22 @@ namespace Assets.Scripts.UI.Views.SubViews
 
         private async void OnGetServerClicked()
         {
-            var getServerRequest = new PlayerConnectionRequest
+            var request = new PlayerConnectionRequest
             { 
                 UserName = _profileManager.Profile.Username,
                 UserId = _profileManager.Profile.UserId
             };
 
-            var dto = await APIHandler.GetServer(getServerRequest);
+            var dto = await APIHandler.RegisterClient(request);
 
             if (dto is null)
             {
-                Debug.LogError("Failed getting valid response from Registry");
-
-                return;
-            }
-
-            if(dto.ServerAddress is null)
-            {
-                Debug.LogError("Registry returned DTO with no serverAddress");
-
                 return;
             }
 
             var networkSession = FindObjectOfType<NetworkHandler>();
 
-            networkSession.serverIP = $"{dto.ServerAddress}:{dto.ServerPort}";
-            networkSession.StartSession();
+            networkSession.StartSession(dto.ServerAddress, dto.ServerPort);
 
             ViewManager.SwitchView(ViewType.GameHUD);
         }

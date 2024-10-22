@@ -1,5 +1,6 @@
 using System;
 using System.Net.Http;
+using Player;
 using UnityEngine;
 
 public class BaseClient : MonoBehaviour
@@ -12,6 +13,7 @@ public class BaseClient : MonoBehaviour
     private int _timeoutInSeconds = 10;
     
     protected HttpClient Client = default!;
+    protected ProfileManager ProfileManager = default!;
 
     private void Awake()
     {
@@ -20,5 +22,11 @@ public class BaseClient : MonoBehaviour
             BaseAddress = new(_baseAddress),
             Timeout = TimeSpan.FromSeconds(_timeoutInSeconds)
         };
+    }
+    
+    protected string GetAccessToken()
+    {
+        ProfileManager ??= FindObjectOfType<ProfileManager>();
+        return ProfileManager.Profile.AccessToken;
     }
 }

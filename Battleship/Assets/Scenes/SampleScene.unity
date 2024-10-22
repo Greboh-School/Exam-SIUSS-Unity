@@ -3209,6 +3209,7 @@ MonoBehaviour:
   - {fileID: 1482885681}
   - {fileID: 997350169}
   - {fileID: 997350169}
+  - {fileID: 1808539481}
   _startView: 1
 --- !u!1 &1690584194
 GameObject:
@@ -3784,7 +3785,7 @@ MonoBehaviour:
     EnableNetworkLogs: 1
     OldPrefabList: []
   RunInBackground: 1
-  LogLevel: 1
+  LogLevel: 0
 --- !u!4 &2060691438
 Transform:
   m_ObjectHideFlags: 0
@@ -3825,7 +3826,8 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serverIP: 127.0.0.1:40000
-  AutoStartNetworkSession: 1
+  serverPort: 4242
+  AutoStartNetworkSession: 0
   sessionType: 0
 --- !u!1 &2080213764
 GameObject:
@@ -3858,7 +3860,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _baseAddress: http://localhost:8080/api/v1
-  _timeoutInSeconds: 10
+  _timeoutInSeconds: 60
 --- !u!4 &2080213766
 Transform:
   m_ObjectHideFlags: 0
@@ -3886,8 +3888,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: dcac3735088cde0408a79003e113373f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _baseAddress: http://localhost:8080/api/v1
-  _timeoutInSeconds: 10
+  _baseAddress: http://localhost:5128/api/v1
+  _timeoutInSeconds: 60
 --- !u!114 &73019221092260842
 MonoBehaviour:
   m_ObjectHideFlags: 0
