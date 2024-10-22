@@ -1,4 +1,5 @@
 ﻿using Player;
+using System;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -23,13 +24,17 @@ namespace Game
         public int Health;
         public GamePhase Phase;
         public string UserName;
+        public string AccessToken;
+        public Guid UserId;
 
         [Header("UI")]
         [SerializeField]
         private TMP_Text Text_TurnDisplay;
 
-        public void Start()
+        public override void OnNetworkSpawn()
         {
+            base.OnNetworkSpawn();
+            
             if (!IsOwner && IsClient)
             {
                 // Hacky implementation to 'hide' enemy client board - No ships are shared, so no cheating!
@@ -39,19 +44,22 @@ namespace Game
             EnemyBoard.GameClient = this;
             SelfBoard.GameClient = this;
 
-            if (IsOwner && IsClient)
+            if (!IsOwner || !IsClient)
             {
-                var profile = FindObjectOfType<ProfileManager>().Profile;
-
-                SendInfoAndStartServerRpc(NetworkManager.Singleton.LocalClientId, profile.Username);
-
-                SelfBoard.Text_UserName.text = UserName;
-                Id = NetworkManager.Singleton.LocalClientId;
-
-                SelfBoard.InstantiateShipForPlacing = true;
-
-                Text_TurnDisplay.text = "Place your ships! Use both mousebuttons!";
+                return;
             }
+            
+            var profile = FindObjectOfType<ProfileManager>().Profile;
+            AccessToken = profile.AccessToken;
+
+            SendInfoAndStartServerRpc(NetworkManager.Singleton.LocalClientId, profile.Username, profile.UserId.ToString());
+
+            SelfBoard.Text_UserName.text = UserName;
+            Id = NetworkManager.Singleton.LocalClientId;
+
+            SelfBoard.InstantiateShipForPlacing = true;
+
+            Text_TurnDisplay.text = "Place your ships! Use both mousebuttons!";
         }
 
         public void Update()
@@ -88,10 +96,11 @@ namespace Game
         /// <param name="clientId"></param>
         /// <param name="userName"></param>
         [ServerRpc]
-        private void SendInfoAndStartServerRpc(ulong clientId, string userName)
+        private void SendInfoAndStartServerRpc(ulong clientId, string userName, string userIdGuid)
         {
             Id = clientId;
             UserName = userName;
+            UserId = Guid.Parse(userIdGuid);
             SelfBoard.GameClient = this;
 
             Server = FindObjectOfType<Server>();
@@ -247,7 +256,7 @@ namespace Game
         [ClientRpc]
         public void DisconnectClientRpc()
         {
-            Text_TurnDisplay.text = $"Your opponent has disconnected - The game will reset";
+            Text_TurnDisplay.text = $"Your opponent has disconnected - The game is over";
         }
 
         [ClientRpc]
