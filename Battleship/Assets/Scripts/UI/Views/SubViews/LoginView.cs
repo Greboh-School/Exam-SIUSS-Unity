@@ -49,7 +49,7 @@ public class LoginView : View
             Password = _password.text
         };
 
-        var profile = await APIHandler.Login(request);
+        var profile = await API.Login(request);
 
         if(profile is null)
         {

@@ -1,10 +1,10 @@
-﻿using Assets.Scripts.API.Models.DTOs;
+﻿﻿using Assets.Scripts.API.Models.DTOs;
 using Assets.Scripts.API.Models.Requests;
 using System;
 using System.Net.Http.Json;
 using System.Threading.Tasks;
 using API.Models.Requests;
-using Game;
+using Assets.Scripts.UI.Views.SubViews;
 using Network.API.Models;
 using UnityEngine;
 
@@ -68,6 +68,36 @@ namespace Assets.Scripts.API.Clients
         public async Task RemoveServer(Guid id)
         {
             await Client.DeleteAsync($"{Client.BaseAddress}/servers/{id}");
+        }
+        
+        public async Task SendMessage(MessageDTO dto)
+        {
+            var response = await Client.PostAsJsonAsync($"{Client.BaseAddress}/brokers/message", dto);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Debug.LogError($"Failed to send public message! {response.StatusCode} ");
+
+                if (dto.Type is MessageType.Private)
+                {
+                    FindFirstObjectByType<GameHUD>().SetErrorMessage($"Failed to send private message, {dto.Recipient} is not online!");
+                }
+            }
+            else Debug.Log($"Sent {dto.Type} message");
+        }
+        
+        public async Task CreateServerQueues(Guid serverId)
+        {
+            var response = await Client.PostAsync($"{Client.BaseAddress}/brokers/queue/{serverId}", null);
+
+            if (!response.IsSuccessStatusCode)
+            {
+                Debug.LogError($"Failed to create server queue! {response.ReasonPhrase}");
+            }
+            else
+            {
+                Debug.Log($"Created server queue for server: {serverId}");
+            }
         }
     }
 }

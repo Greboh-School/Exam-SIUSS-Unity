@@ -16,17 +16,17 @@ namespace Views
     {
         public abstract ViewType ViewType { get; }
 
-        protected APIHandler APIHandler;
+        protected APIHandler API;
         protected ViewManager ViewManager;
         protected RegistryClient RegistryClient;
         
         protected virtual void Awake()
         {
-            APIHandler = FindFirstObjectByType<APIHandler>();
+            API = FindFirstObjectByType<APIHandler>();
             ViewManager = FindFirstObjectByType<ViewManager>();
             RegistryClient = FindFirstObjectByType<RegistryClient>();
             
-            if (APIHandler is null)
+            if (API is null)
             {
                 Debug.LogError("APIHandler is null");
             }
