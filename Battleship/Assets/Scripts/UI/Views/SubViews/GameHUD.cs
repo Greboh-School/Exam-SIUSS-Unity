@@ -96,6 +96,5 @@ namespace Assets.Scripts.UI.Views.SubViews
         {
             _messageField.text = message;
         }
-        
     }
 }

@@ -40,8 +40,7 @@ public class APIHandler : MonoBehaviour
     {
         return await _authenticationClient.Register(request);
     }
-
-
+    
     public async Task<PlayerDTO> RegisterClient(PlayerConnectionRequest request)
     {
         return await _registryClient.RegisterClient(request);
