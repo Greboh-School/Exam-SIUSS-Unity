@@ -1,13 +1,18 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
+using System;
 using System.Linq;
+using ClientRpcParams = Unity.Netcode.ClientRpcParams;
+using ClientRpcSendParams = Unity.Netcode.ClientRpcSendParams;
+using Unity.Netcode;
+using System.Collections.Generic;
+using System.Text.Json;
 using System.Threading.Tasks;
 using API.Models.Requests;
-using Assets.Scripts.API.Models.Requests;
-using Unity.Netcode;
+using Assets.Scripts.API.Models.DTOs;
 using Unity.Netcode.Transports.UTP;
 using UnityEngine;
+using RabbitMQ.Client;
+using RabbitMQ.Client.Events;
+using MessageType = Assets.Scripts.API.Models.DTOs.MessageType;
 
 namespace Game
 {
@@ -15,16 +20,18 @@ namespace Game
     {
         [Header("Boards")]
         public Client ClientA;
-
         public Client ClientB;
-
+        
         public Guid Id;
 
         private string Ip = "127.0.0.1:6969";
         private APIHandler _api;
         private PrefabManager _prefabManager;
 
-        private Dictionary<ulong, Guid> _players = new();
+        private Dictionary<ulong, Client> _players = new();
+
+        private IConnection _connection;
+        private IModel _channel;
 
         private void Awake()
         {
@@ -84,8 +91,73 @@ namespace Game
             Id = dto!.Id;
 
             Debug.Log($"Server registered at {Ip} with id {Id}");
+
+            await _api.CreateServerQueues(Id);
+
+            InitRabbitMQ();
         }
 
+        private void InitRabbitMQ()
+        {
+            var hostName = "localhost";
+            
+#if UNITY_STANDALONE_LINUX && !UNITY_EDITOR && UNITY_SERVER
+            hostName = "rabbitmq";
+#endif
+            
+            var factory = new ConnectionFactory
+            {
+                HostName = hostName,
+                UserName = "Dev",
+                Password = "Test-1234"
+            };
+            
+            _connection = factory.CreateConnection();
+            _channel = _connection.CreateModel();
+            
+            var consumer = new EventingBasicConsumer(_channel);
+            consumer.Received += OnMessageReceived;
+            _channel.BasicConsume(queue: $"server.{Id}.public", autoAck: true, consumer: consumer);
+            _channel.BasicConsume(queue: $"server.{Id}", autoAck: true, consumer: consumer);
+            Debug.Log("RabbitMQ initialized");
+            
+        }
+
+        private void OnMessageReceived(object obj, BasicDeliverEventArgs e)
+        {
+            var body = System.Text.Encoding.UTF8.GetString(e.Body.ToArray());
+            var message = JsonSerializer.Deserialize<MessageDTO>(body);
+            
+            Debug.LogError($"Got message! {message.Content}");
+            
+            UnityMainThreadDispatcher.Enqueue(() =>
+            {
+                if (message.Type == MessageType.Public)
+                {
+                    NotifyPublicMessage(message);
+                }
+                else if (message.Type == MessageType.Private) 
+                {
+                    NotifyPrivateMessage(message);
+                }
+            });
+        }
+        
+        private void NotifyPublicMessage(MessageDTO dto)
+        {
+            foreach (var player in _players)
+            {
+                player.Value.SetHudMessageClientRPC(Enum.GetName(typeof(MessageType), dto.Type), dto.Content, dto.Sender);
+            }
+        }
+        
+        private void NotifyPrivateMessage(MessageDTO dto)
+        {
+            var player = _players.FirstOrDefault(x => x.Value.UserName == dto.Recipient).Value;
+            player.SetHudMessageClientRPC(Enum.GetName(typeof(MessageType), dto.Type), dto.Content, dto.Sender);
+        }
+
+        
         private async Task StopServer(bool obj)
         {
             await _api.RemoveServer(Id);
@@ -110,8 +182,8 @@ namespace Game
 
         private async Task RemoveClient(ulong id)
         {
-            var userId = _players[id];
-            await _api.RemovePlayerFromRegistry(userId);
+            var client = _players[id];
+            await _api.RemovePlayerFromRegistry(client.UserId);
             _players.Remove(id);
             
             OnClientDisconnect(id);
@@ -134,24 +206,19 @@ namespace Game
         /// Destroy Objects and references of disconnected client.
         /// </summary>
         /// <param name="clientId"></param>
-        /// <returns>UserId Guid of the disconnected client</returns>
-        public Guid OnClientDisconnect(ulong clientId)
+        public void OnClientDisconnect(ulong clientId)
         {
             Client remainingClient = null;
-            Guid disconnectedClientUserId = Guid.Empty;
 
-            if (ClientA?.Id == clientId)
+            if (ClientA.Id == clientId)
             {
-                disconnectedClientUserId = ClientA.UserId;
                 Destroy(ClientA.gameObject);
                 ClientA = null;
 
                 remainingClient = ClientB;
             }
-
-            if (ClientB?.Id == clientId)
+            if (ClientB.Id == clientId)
             {
-                disconnectedClientUserId = ClientB.UserId;
                 Destroy(ClientB.gameObject);
                 ClientB = null;
 
@@ -161,17 +228,15 @@ namespace Game
             if (remainingClient is null)
             {
                 Debug.Log("Both clients have disconneted");
-                return Guid.Empty;
+                return;
             }
 
             remainingClient.DisconnectClientRpc();
 
             if (remainingClient.Phase != GamePhase.Build || remainingClient.Phase != GamePhase.Ended)
             {
-                remainingClient.ChangePhase(GamePhase.Ended);
+                remainingClient.ChangePhase(GamePhase.Ready);
             }
-
-            return disconnectedClientUserId;
         }
 
         /// <summary>
@@ -180,7 +245,7 @@ namespace Game
         /// <param name="client"></param>
         public void RegisterPlayer(Client client)
         {
-            _players.Add(client.Id, client.UserId);
+            _players.Add(client.Id, client);
 
             Debug.Log($"Player {client.Id}:{client.UserId} has joined the server");
             
@@ -252,7 +317,7 @@ namespace Game
                 winningClientName = ClientA.UserName;
             }
 
-            if (winningClientName != string.Empty)
+            if(winningClientName != string.Empty)
             {
                 ClientA.GameOverClientRpc(winningClientName);
                 ClientB.GameOverClientRpc(winningClientName);

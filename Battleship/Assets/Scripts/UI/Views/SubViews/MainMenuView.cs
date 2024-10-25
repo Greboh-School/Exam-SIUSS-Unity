@@ -1,11 +1,8 @@
-﻿using Assets.Scripts.API.Models.DTOs;
-using Assets.Scripts.API.Models.Requests;
+﻿using Assets.Scripts.API.Models.Requests;
 using Network;
 using Player;
-using System;
 using TMPro;
 using UnityEngine;
-using UnityEngine.Rendering.Universal;
 using UnityEngine.UI;
 using Views;
 
@@ -76,7 +73,7 @@ namespace Assets.Scripts.UI.Views.SubViews
                 UserId = _profileManager.Profile.UserId
             };
 
-            var dto = await APIHandler.RegisterClient(request);
+            var dto = await API.RegisterClient(request);
 
             if (dto is null)
             {

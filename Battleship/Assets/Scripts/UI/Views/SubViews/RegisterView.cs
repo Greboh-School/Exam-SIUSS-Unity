@@ -53,7 +53,7 @@ namespace Views
                 Password = _password.text
             };
 
-            var succes = await APIHandler.Register(request);
+            var succes = await API.Register(request);
 
             if (succes)
             {

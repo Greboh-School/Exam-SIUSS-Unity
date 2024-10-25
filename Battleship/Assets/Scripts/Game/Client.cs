@@ -1,5 +1,6 @@
-﻿using Player;
+﻿﻿using Player;
 using System;
+using Assets.Scripts.UI.Views.SubViews;
 using TMPro;
 using Unity.Netcode;
 using UnityEngine;
@@ -31,6 +32,8 @@ namespace Game
         [SerializeField]
         private TMP_Text Text_TurnDisplay;
 
+        private GameHUD _hud;
+        
         public override void OnNetworkSpawn()
         {
             base.OnNetworkSpawn();
@@ -60,6 +63,7 @@ namespace Game
             SelfBoard.InstantiateShipForPlacing = true;
 
             Text_TurnDisplay.text = "Place your ships! Use both mousebuttons!";
+            _hud = FindFirstObjectByType<GameHUD>();
         }
 
         public void Update()
@@ -267,6 +271,12 @@ namespace Game
             Text_TurnDisplay.text = $"'{winningUser}' has won!";
 
             //TODO: Winning logic
+        }
+
+        [ClientRpc]
+        public void SetHudMessageClientRPC(string messageType, string message, string sender, ClientRpcParams clientRpcParams = default)
+        {
+            _hud.SetMessage(messageType, message, sender);
         }
     }
 }

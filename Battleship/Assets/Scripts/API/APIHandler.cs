@@ -12,34 +12,35 @@ using UnityEngine;
 public class APIHandler : MonoBehaviour
 {
     private AuthenticationClient _authenticationClient;
-    private ProfileManager _profileManager;
     private RegistryClient _registryClient;
 
+    private ProfileManager _profileManager;
+    
     private void Start()
     {
         _authenticationClient = FindObjectOfType<AuthenticationClient>();
-        _profileManager = FindObjectOfType<ProfileManager>();
         _registryClient = FindObjectOfType<RegistryClient>();
+        _profileManager = FindObjectOfType<ProfileManager>();
     }
-
+    
     public async Task<PlayerProfile> Login(LoginRequest request)
     {
         var dto = await _authenticationClient.Login(request);
 
-        if (dto is not null)
+        if (dto is null)
         {
-            return _profileManager.OnSuccessfulLogin(dto);
+            Debug.LogError("DTO is null!");
+            return null;
         }
         
-        Debug.LogError("DTO is null!");
-        return null;
+        return _profileManager.OnSuccessfulLogin(dto);
     }
 
     public async Task<bool> Register(RegistrationRequest request)
     {
         return await _authenticationClient.Register(request);
     }
-
+    
     public async Task<PlayerDTO> RegisterClient(PlayerConnectionRequest request)
     {
         return await _registryClient.RegisterClient(request);
@@ -61,5 +62,14 @@ public class APIHandler : MonoBehaviour
     {
         await _registryClient.RemoveServer(id);
     }
+
+    public async Task CreateServerQueues(Guid id)
+    {
+        await _registryClient.CreateServerQueues(id);
+    }
     
+    public async Task SendMessage(MessageDTO dto)
+    {
+        await _registryClient.SendMessage(dto);
+    }
 }
